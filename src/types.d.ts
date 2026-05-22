@@ -9,8 +9,12 @@ declare module 'obsidian' {
 	interface App {
 		embedRegistry: EmbedRegistry;
 		internalPlugins: InternalPluginManager;
+		plugins: PluginManager;
 	}
 
+	/**
+	 * Bounding box interface.
+	 */
 	interface CanvasBBox {
 		maxX: number;
 		maxY: number;
@@ -18,7 +22,12 @@ declare module 'obsidian' {
 		minY: number;
 	}
 
-	/** @typeonly */
+	/**
+	 * Underlying layer of canvas that displays nodes and edges, and
+	 * interacts directly with users.
+	 * 
+	 * @typeonly
+	 */
 	class CanvasEditor {
 		canvasControlsEl: HTMLElement;
 		canvasEl: HTMLElement;
@@ -27,25 +36,66 @@ declare module 'obsidian' {
 		quickSettingsButton: HTMLElement;
 		undoBtnEl: HTMLElement;
 		view: CanvasEditorOwner;
+		/**
+		 * Wraps `canvasEl`.
+		 */
 		wrapperEl: HTMLElement;
 		zoomToFitQueued: boolean;
 		constructor(view: CanvasEditorOwner);
+		/**
+		 * Clear `CanvasEditor` from its content without unregister any of global
+		 * event handlers.
+		 * 
+		 * Use `unload()` to completely unload the canvas.
+		 */
 		clear(): void;
 		createPlaceholder(): void;
+		/**
+		 * Initialize `CanvasEditor`.
+		 */
 		load(): void;
+		/**
+		 * Indicate that the canvas' viewport is changed and update its display
+		 * afterwards.
+		 */
 		markViewportChanged(): void;
+		/**
+		 * Run when the canvas is being resized.
+		 */
 		onResize(): void;
+		/**
+		 * Run when the canvas is being scrolled.
+		 */
 		onWheel(evt: WheelEvent): void;
+		/**
+		 * Enqueue canvas display update.
+		 */
 		requestFrame(timestamp?: number): void;
+		/**
+		 * Serialize `CanvasData` into nodes and edges.
+		 */
 		setData(data: CanvasData): void;
+		/**
+		 * Toggle read-only state.
+		 */
 		setReadonly(readonly: boolean): void;
+		/**
+		 * Clear `CanvasEditor` from its content and unregister global event
+		 * handlers.
+		 */
 		unload(): void;
 	}
 
 	interface CanvasEditorOwner {
 		app: App;
 		canvas: CanvasEditor;
+		/**
+		 * Element that contains `CanvasEditor`.
+		 */
 		contentEl: HTMLElement;
+		/**
+		 * Should be a canvas file.
+		 */
 		file: TFile | null;
 		plugin: CanvasPluginInstance;
 		requestSave(): void;
@@ -80,6 +130,10 @@ declare module 'obsidian' {
 	}
 
 	interface EmbedComponent extends Component {
+		/**
+		 * Run once before attaching this to the DOM. You should wrap your code
+		 * that loads file content here.
+		 */
 		loadFile(): void;
 	}
 
@@ -94,19 +148,51 @@ declare module 'obsidian' {
 		state?: unknown;
 	}
 
-	type EmbedCreator = (context: EmbedContext, file: TFile, subpath?: string) => EmbedComponent;
+	/**
+	 * Function that returns an `EmbedComponent`.
+	 */
+	type EmbedCreator = (
+		context: EmbedContext,
+		file: TFile,
+		subpath?: string
+	) => EmbedComponent;
 
-	/** @typeonly */
+	/**
+	 * Manages embeds registered under file extensions.
+	 * 
+	 * @typeonly
+	 */
 	class EmbedRegistry extends Events {
 		embedByExtension: Record<string, EmbedCreator>;
+		/**
+		 * Register an `EmbedCreator` under file extension. Use this to customize
+		 * embed for certain file.
+		 * 
+		 * @param ext File extension.
+		 * @param creator `EmbedCreator` implementation.
+		 * 
+		 * @throws Throws error if another `EmbedCreator` is already registered
+		 * under the same extension.
+		 */
 		registerExtension(ext: string, creator: EmbedCreator): void;
 		unregisterExtension(ext: string): void;
 	}
 
-	/** @typeonly */
+	/**
+	 * Wraps `InternalPluginInstance` instance.
+	 * 
+	 * @typeonly
+	 */
 	class InternalPlugin<T extends InternalPluginIDs> extends Component {
+		/**
+		 * Indicates whether it is enabled.
+		 */
 		enabled: boolean;
 		instance: InternalPluginInstanceMap[T];
+		/**
+		 * Views that belong to this plugin. Each view creator is mapped onto
+		 * view type.
+		 */
 		views: {
 			[V in InternalPluginViewTypes<T>]: TypedViewCreator<ViewTypeMap[V]>;
 		};
@@ -115,6 +201,9 @@ declare module 'obsidian' {
 	type InternalPluginIDs = keyof InternalPluginInstanceMap;
 
 	interface InternalPluginInstance {
+		/**
+		 * Unique id of the plugin.
+		 */
 		id: string;
 	}
 
@@ -122,9 +211,20 @@ declare module 'obsidian' {
 		'canvas': CanvasPluginInstance;
 	}
 
-	/** @typeonly */
+	/**
+	 * Manages the lifecycle of internal plugins (core plugins).
+	 * 
+	 * @typeonly
+	 */
 	class InternalPluginManager extends Events {
+		/**
+		 * Get internal plugin by its id, regardless of whether it is enabled or
+		 * not.
+		 */
 		getPluginById<T extends InternalPluginIDs>(id: T): InternalPlugin<T>;
+		/**
+		 * Triggered when an internal plugin has been enabled or disabled.
+		 */
 		on(name: 'change', callback: (plugin: InternalPlugin<InternalPluginIDs>) => unknown, ctx?: any): EventRef;
 	}
 
@@ -132,6 +232,15 @@ declare module 'obsidian' {
 
 	interface InternalPluginViewTypesMap {
 		'canvas': 'canvas';
+	}
+
+	/**
+	 * Manages the lifecycle of community plugins.
+	 * 
+	 * @typeonly
+	 */
+	class PluginManager {
+		isEnabled(id: string): boolean;
 	}
 
 	type TypedViewCreator<T extends View> = (leaf: WorkspaceLeaf) => T;
@@ -142,6 +251,9 @@ declare module 'obsidian' {
 	}
 
 	interface WorkspaceLeaf {
+		/**
+		 * Reload contained view.
+		 */
 		rebuildView(): Promise<void>;
 	}
 }
