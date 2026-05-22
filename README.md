@@ -36,7 +36,7 @@ You can also adjust the height of the canvas by adding a bar (`|`) and number to
 ![[My canvas.canvas|500]]
 ```
 
-> [!note] Note
+> [!Note]
 >
 > The minimum height of an embedded canvas is 300. The height adjusted below 300 will be rounded up to 300.
 
