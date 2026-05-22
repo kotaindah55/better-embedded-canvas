@@ -1,3 +1,8 @@
+[0.0.4]
+### Bug fix
+Prevent canvas from being drop destination.
+---
+
 [0.0.3]
 ### Minor change
 Fix authorUrl link destination in the plugin manifest.
