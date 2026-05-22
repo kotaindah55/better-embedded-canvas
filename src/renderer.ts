@@ -18,6 +18,8 @@ export function getCanvasRenderer(owner: CanvasEditorOwner): CanvasEditor {
 	renderer.cardMenuEl.detach();
 	// Make it read-only.
 	renderer.setReadonly(true);
+	// Prevent canvas from being drop destination.
+	renderer.wrapperEl.addEventListener('drop', evt => evt.preventDefault(), true);
 
 	return renderer;
 }
