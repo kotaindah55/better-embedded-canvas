@@ -142,7 +142,6 @@ export class CanvasEmbedComponent extends Component implements EmbedComponent, C
 				});
 			}, true);
 		} else {
-			this.canvas.createPlaceholder();
 			this.canvas.requestFrame();
 		}
 	}
