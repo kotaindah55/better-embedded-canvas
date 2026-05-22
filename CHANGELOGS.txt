@@ -1,0 +1,9 @@
+[0.0.1]
+### First release
+Read [README](https://github.com/kotaindah55/better-embedded-canvas) to learn more.
+---
+
+// A changelog must be opened by a version tag wrapped by square brackets,
+// and closed by three consecutive dashes.
+
+// Latest changelog must be located in the beginning of the document.
