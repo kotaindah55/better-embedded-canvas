@@ -1,7 +1,7 @@
 {
 	"id": "better-embedded-canvas",
 	"name": "Better Embedded Canvas",
-	"version": "0.0.1",
+	"version": "0.0.2",
 	"minAppVersion": "1.10.0",
 	"description": "Give your embedded canvas better display and interactivity.",
 	"author": "Kotaindah55",

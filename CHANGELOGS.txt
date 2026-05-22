@@ -1,3 +1,8 @@
+[0.0.2]
+### Bug fix
+Fix plugin cannot be enabled and raises an error.
+---
+
 [0.0.1]
 ### First release
 Read [README](https://github.com/kotaindah55/better-embedded-canvas) to learn more.
