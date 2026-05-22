@@ -1,0 +1,10 @@
+{
+	"id": "better-embedded-canvas",
+	"name": "Better Embedded Canvas",
+	"version": "0.0.1",
+	"minAppVersion": "1.10.0",
+	"description": "Give your embedded canvas better display and interactivity.",
+	"author": "Kotaindah55",
+	"authorUrl": "https://github.com/kotaindah55/better-embedded-canvas",
+	"isDesktopOnly": false
+}

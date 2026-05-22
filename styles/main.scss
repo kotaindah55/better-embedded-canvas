@@ -1,0 +1,17 @@
+body {
+	--embedded-canvas-min-height: 300px;
+	--embedded-canvas-border-width: 1px;
+	--embedded-canvas-border-color: var(--background-modifier-border);
+}
+
+.canvas-embed.better-canvas-embed {
+	&.internal-embed > .canvas-content > .canvas-wrapper {
+		position: relative;
+	}
+	& > .canvas-content {
+		height: var(--embedded-canvas-min-height);
+		border: var(--embedded-canvas-border-width) solid var(--embedded-canvas-border-color);
+		border-radius: var(--radius-m);
+		overflow: hidden;
+	}
+}

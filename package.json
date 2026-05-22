@@ -1,0 +1,42 @@
+{
+	"name": "better-embedded-canvas",
+	"version": "0.0.1",
+	"description": "Give your embedded canvas better display and interactivity.",
+	"main": "main.js",
+	"scripts": {
+		"dev": "npx tsx scripts/esbuild.config.mts",
+		"dev:styles": "npx tsx scripts/sass.config.mts",
+		"build": "tsc -noEmit -skipLibCheck && npx tsx scripts/esbuild.config.mts production",
+		"build:styles": "npx tsx scripts/sass.config.mts production",
+		"version": "npx tsx scripts/version-bump.mts",
+		"changelog": "npx tsx scripts/print-changelog.mts",
+		"publish": "npx tsx scripts/publish.mts",
+		"publish:no-package-lock": "npx tsx scripts/publish.mts no-package-lock",
+		"lock": "npx tsx scripts/lock-package.mts",
+		"lock:no-push": "npx tsx scripts/lock-package.mts no-push"
+	},
+	"keywords": [
+		"obsidian-plugin"
+	],
+	"author": "Kotaindah55 (Sheva Ihza)",
+	"license": "MIT",
+	"devDependencies": {
+		"@eslint/js":"^9.39.2",
+		"@types/node": "^22.19.9",
+		"@typescript-eslint/eslint-plugin": "^8.59.0",
+		"@typescript-eslint/parser": "^8.59.0",
+		"builtin-modules": "^5.2.0",
+		"esbuild": "^0.28.0",
+		"eslint-plugin-jsdoc":"^63.0.0",
+		"eslint-plugin-obsidianmd": "^0.3.0",
+		"i18next": "^26.2.0",
+		"obsidian": "latest",
+		"sass": "^1.100.0",
+		"tsx": "^4.20.3",
+		"typescript": "^6.0.3",
+		"typescript-eslint": "^8.59.4"
+	},
+	"dependencies": {
+		"monkey-around": "3.0.0"
+	}
+}
