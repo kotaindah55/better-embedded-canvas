@@ -6,7 +6,11 @@ import type { App, CanvasEditor as _CanvasEditor, WorkspaceLeaf } from 'obsidian
 function mockLeaf(app: App): WorkspaceLeaf {
 	return {
 		app,
-		containerEl: createDiv()
+		containerEl: createDiv(),
+		history: {
+			backHistory: [],
+			forwardHistory: []
+		}
 	} as unknown as WorkspaceLeaf;
 }
 
