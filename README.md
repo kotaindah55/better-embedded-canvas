@@ -12,6 +12,7 @@ Give your embedded canvas better display and interactivity.
 - Navigate using panning and zooming to move across the canvas.
 - Adjust the height of the embedded canvas in the note.
 - Work on both page preview and canvas.
+- Support [Advanced Canvas][advanced-canvas] plugin.
 
 ## 📦 Installation
 
@@ -56,6 +57,7 @@ Thanks to:
 - [Michael Naumov][mnaoumov], [Fevol][fevol], and the others at [Obsidian Typings][obsidian-typings].
 
 [BRAT]: https://github.com/TfTHacker/obsidian42-brat
+[advanced-canvas]: https://community.obsidian.md/plugins/advanced-canvas
 [canvas-help]: https://obsidian.md/help/plugins/canvas
 [obsidian-typings]: https://github.com/obsidian-typings/obsidian-typings
 [mnaoumov]: https://github.com/mnaoumov
