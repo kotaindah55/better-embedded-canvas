@@ -98,6 +98,8 @@ export class CanvasEmbedComponent extends Component implements EmbedComponent, C
 	}
 
 	public override onunload(): void {
+		this.app.workspace.trigger('advanced-canvas:canvas-view-unloaded:before', this);
+
 		this.resizeObserver.disconnect();
 		this.mutationObserver.disconnect();
 		this.canvas.unload();
@@ -144,6 +146,9 @@ export class CanvasEmbedComponent extends Component implements EmbedComponent, C
 		} else {
 			this.canvas.requestFrame();
 		}
+
+		// Let Advancaed Canvas plugin run on top of this embed.
+		this.app.workspace.trigger('advanced-canvas:canvas-changed', this.canvas);
 	}
 
 	/**

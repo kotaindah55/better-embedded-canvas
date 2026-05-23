@@ -53,6 +53,10 @@ export class BetterEmbeddedCanvasPlugin extends Plugin {
 		// enabled.
 		if (plugin.enabled) {
 			this.builtinCanvasEmbedCreator = replaceEmbedCreator(this.app, 'canvas', (ctx, file, subpath?) => {
+				// Use Advanced Canvas' custom embed.
+				if (this.app.plugins.isEnabled('advanced-canvas') && subpath)
+					return this.builtinCanvasEmbedCreator!(ctx, file, subpath);
+
 				// Avoid deeply, or probably infinite, embedded canvases.
 				//
 				// KNOWN ISSUE:
