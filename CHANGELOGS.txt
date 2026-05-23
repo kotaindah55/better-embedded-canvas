@@ -1,3 +1,8 @@
+[0.1.0]
+### Major change
+Now, this plugin is properly supports [Advanced Canvas](https://community.obsidian.md/plugins/advanced-canvas) plugin.
+---
+
 [0.0.4]
 ### Bug fix
 Prevent canvas from being drop destination.
