@@ -37,8 +37,6 @@ export class CanvasEmbedComponent extends Component implements EmbedComponent, C
 	public readonly ctx: EmbedContext;
 	public readonly subpath?: string | undefined;
 
-	private readonly vault: Vault;
-	private readonly workspace: Workspace;
 	private readonly containerEl: HTMLElement;
 	/**
 	 * Displays file name.
@@ -53,8 +51,6 @@ export class CanvasEmbedComponent extends Component implements EmbedComponent, C
 	private constructor(ctx: EmbedContext, file: TFile, subpath?: string) {
 		super();
 		this.app = ctx.app;
-		this.vault = this.app.vault;
-		this.workspace = this.app.workspace;
 		this.plugin = getInternalPlugin(this.app, 'canvas').instance;
 		this.ctx = ctx;
 		this.file = file;
@@ -92,7 +88,7 @@ export class CanvasEmbedComponent extends Component implements EmbedComponent, C
 	public override onload(): void {
 		this.canvas.load();
 		// Triggered each time a file has been modified.
-		this.registerEvent(this.vault.on('modify', this.handleModify, this));
+		this.registerEvent(this.app.vault.on('modify', this.handleModify, this));
 		// Store this embed.
 		store.storeCanvasEmbed(this);
 	}
@@ -155,7 +151,7 @@ export class CanvasEmbedComponent extends Component implements EmbedComponent, C
 	 * Open canvas individually at preferred tab.
 	 */
 	private async openOnClick(evt: PointerEvent): Promise<void> {
-		let leaf = this.workspace.getLeaf(Keymap.isModEvent(evt));
+		let leaf = this.app.workspace.getLeaf(Keymap.isModEvent(evt));
 		await leaf.openFile(this.file);
 	}
 
@@ -178,7 +174,7 @@ export class CanvasEmbedComponent extends Component implements EmbedComponent, C
 	private async handleModify(aFile: TAbstractFile): Promise<void> {
 		if (aFile != this.file) return;
 		// Update the canvas when the file is modified.
-		let data = await this.vault.cachedRead(this.file);
+		let data = await this.app.vault.cachedRead(this.file);
 		this.setData(data, false);
 	}
 
