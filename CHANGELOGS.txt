@@ -1,3 +1,8 @@
+[0.1.1]
+### Minor change
+Display grid on embedded canvas. On previous version, [Advanced Canvas](https://community.obsidian.md/plugins/advanced-canvas) hid the grid.
+---
+
 [0.1.0]
 ### Major change
 Now, this plugin is properly supports [Advanced Canvas](https://community.obsidian.md/plugins/advanced-canvas) plugin.
