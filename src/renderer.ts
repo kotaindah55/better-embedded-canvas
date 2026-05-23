@@ -14,6 +14,8 @@ export function getCanvasRenderer(owner: CanvasEditorOwner): CanvasEditor {
 	renderer.quickSettingsButton.parentElement?.detach();
 	// Hide history (undo/redo) buttons.
 	renderer.undoBtnEl.parentElement?.detach();
+	// Hide canvas help button.
+	renderer.canvasControlsEl.lastElementChild?.detach();
 	// Hide card menu buttons to prevent user from adding canvas node.
 	renderer.cardMenuEl.detach();
 	// Make it read-only.
