@@ -20,10 +20,18 @@ Give your embedded canvas better display and interactivity.
     - Create a folder named `better-embedded-canvas` under `YOUR_VAULT_NAME/.obsidian/plugins`.
     - Place `manifest.json`, `main.js`, and `style.css` from the latest release into the folder.
     - Enable it through the "Community plugin" setting tab.
-- In-app (coming soon...)
+- In-app
+    - Open settings.
+    - Choose "Community plugins" setting tab.
+    - Turn off "Restricted mode" if it was enabled before.
+    - Click "Browse" at "Community plugins" item.
+    - Type "Better Embedded Canvas" in the search box.
+    - Install and enable it.
 - Using [BRAT][].
 
 ## ✍️ Usage
+
+### Embedding canvas into your note
 
 Use internal link prefixed with an exclamation mark (`!`) to embed a canvas. For example:
 
@@ -41,11 +49,21 @@ You can also adjust the height of the canvas by adding a bar (`|`) and number to
 >
 > The minimum height of an embedded canvas is 300. The height adjusted below 300 will be rounded up to 300.
 
-To learn how to interact with a canvas, refer [here][canvas-help].
+### Interacting with embedded canvas
+
+You can interact with an embedded canvas in the same way as you do with a full canvas view. If you prefer no interaction, you can disable it by selecting hand pointer iconed button in the upper-right corner.
+
+![no-interaction-canvas.png](./assests/no-interaction-canvas.png)
+
+To learn how to interact with canvas, refer [here][canvas-help].
 
 ## ⚠️ Limitation
 
 Embedded canvas cannot be edited directly. To do that, open the canvas directly.
+
+## 🐞 Known issues
+
+- [ ] Embedded canvas nodes are not positioned properly in exported PDF.
 
 ## ©️ Attribution
 
