@@ -123,8 +123,8 @@ export class CanvasEmbedComponent extends Component implements EmbedComponent, C
 	 * Toggle user interaction on canvas, e.g. scroll, click, and touch.
 	 */
 	public toggleInteraction(enable: boolean): void {
-		this.canvas.noInteraction = !enable;
 		this.canvas.deselectAll();
+		this.canvas.noInteraction = !enable;
 
 		// Show/hide zoom buttons.
 		this.zoomControlsEl.toggle(enable);
