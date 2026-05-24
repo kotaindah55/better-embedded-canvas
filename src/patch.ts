@@ -31,6 +31,11 @@ export function patchCanvasEditor(plugin: Plugin): void {
 		onPointermove: oldFn => dedupe(plugin.manifest.id, oldFn, function (this: CanvasEditor, evt) {
 			if (this.noInteraction) return;
 			oldFn.call(this, evt);
+		}),
+
+		updateSelection: oldFn => dedupe(plugin.manifest.id, oldFn, function (this: CanvasEditor, selectCb) {
+			if (this.noInteraction) return;
+			oldFn.call(this, selectCb);
 		})
 	}));
 }

@@ -98,6 +98,13 @@ declare module 'obsidian' {
 		 * handlers.
 		 */
 		unload(): void;
+		/**
+		 * Render staled selection in the canvas.
+		 * 
+		 * @param selectCb Called right before rendering the selection. Use this
+		 * to add, change, or remove selection.
+		 */
+		updateSelection(selectCb: () => void): void;
 	}
 
 	interface CanvasEditorOwner {
