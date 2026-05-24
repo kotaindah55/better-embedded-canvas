@@ -28,6 +28,14 @@ function updateCanvasRects(this: Window): void {
 }
 
 /**
+ * Iterate over all loaded `CanvasEmbedComponent`s across windows and run
+ * the callback on every `CanvasEmbedComponent`.
+ */
+export function iterateCanvasEmbeds(cb: (embed: CanvasEmbedComponent) => void): void {
+	embedStore.forEach(set => set.forEach(cb));
+}
+
+/**
  * Store loaded `CanvasEmbedComponent` to `embedStore`.
  * 
  * @param embed Must be loaded `CanvasEmbedComponent`.
