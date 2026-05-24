@@ -119,6 +119,19 @@ export class CanvasEmbedComponent extends Component implements EmbedComponent, C
 		store.discardCanvasEmbed(this);
 	}
 
+	/**
+	 * Toggle user interaction on canvas, e.g. scroll, click, and touch.
+	 */
+	public toggleInteraction(enable: boolean): void {
+		this.canvas.noInteraction = !enable;
+		this.canvas.deselectAll();
+
+		// Show/hide zoom buttons.
+		this.zoomControlsEl.toggle(enable);
+		setIcon(this.toggleInteractionBtnEl, enable ? 'pointer' : 'pointer-off');
+		setTooltip(this.toggleInteractionBtnEl, t(enable ? 'tooltipDisableInteraction' : 'tooltipEnableInteraction'), { placement: 'left' });
+	}
+
 	public requestSave(): void {}
 
 	public saveLocalData(): void {}
@@ -162,19 +175,6 @@ export class CanvasEmbedComponent extends Component implements EmbedComponent, C
 
 		// Let Advancaed Canvas plugin run on top of this embed.
 		this.app.workspace.trigger('advanced-canvas:canvas-changed', this.canvas);
-	}
-
-	/**
-	 * Toggle user interaction on canvas, e.g. scroll, click, and touch.
-	 */
-	public toggleInteraction(enable: boolean): void {
-		this.canvas.noInteraction = !enable;
-		this.canvas.deselectAll();
-
-		// Show/hide zoom buttons.
-		this.zoomControlsEl.toggle(enable);
-		setIcon(this.toggleInteractionBtnEl, enable ? 'pointer' : 'pointer-off');
-		setTooltip(this.toggleInteractionBtnEl, t(enable ? 'tooltipDisableInteraction' : 'tooltipEnableInteraction'), { placement: 'left' });
 	}
 
 	/**
