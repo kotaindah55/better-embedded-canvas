@@ -14,6 +14,14 @@ body {
 		border: var(--embedded-canvas-border-width) solid var(--embedded-canvas-border-color);
 		border-radius: var(--radius-m);
 		overflow: hidden;
+
+		& > .canvas-wrapper > .canvas-controls {
+			visibility: hidden;
+		}
+
+		&:hover > .canvas-wrapper > .canvas-controls {
+			visibility: visible;
+		}
 	}
 
 	& .canvas-wrapper.mod-readonly[data-hide-background-grid-when-in-readonly=true] .canvas-background {
