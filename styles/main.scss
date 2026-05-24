@@ -8,14 +8,15 @@ body {
 	&.internal-embed > .canvas-content > .canvas-wrapper {
 		position: relative;
 	}
+
 	& > .canvas-content {
 		height: var(--embedded-canvas-min-height);
 		border: var(--embedded-canvas-border-width) solid var(--embedded-canvas-border-color);
 		border-radius: var(--radius-m);
 		overflow: hidden;
 	}
-}
 
-.better-canvas-embed .canvas-wrapper.mod-readonly[data-hide-background-grid-when-in-readonly=true] .canvas-background {
-	visibility: visible;
+	& .canvas-wrapper.mod-readonly[data-hide-background-grid-when-in-readonly=true] .canvas-background {
+		visibility: visible;
+	}
 }
