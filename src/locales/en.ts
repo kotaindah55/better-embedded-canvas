@@ -6,5 +6,11 @@ export default {
 		title: 'Reload notes',
 		desc: 'Select “Reload” to reload all open notes and revert embedded canvases to their default (your data is preserved).',
 		buttonReload: 'Reload'
+	},
+	settings: {
+		showCanvasName: {
+			name: 'Show canvas name',
+			desc: 'Show canvas name as embed title.'
+		}
 	}
 }

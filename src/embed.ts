@@ -15,7 +15,8 @@ import {
 } from './obsidian';
 import { getCanvasRenderer } from './renderer';
 import { getInternalPlugin } from './utils';
-import { PLUGIN_ID } from './main';
+import type { BetterEmbeddedCanvasPlugin } from './main';
+import type { BetterEmbeddedCanvasSettingKey } from './settings';
 import { t } from './i18n';
 import * as store from './store';
 
@@ -36,6 +37,7 @@ export class CanvasEmbedComponent extends Component implements EmbedComponent, C
 	public readonly ctx: EmbedContext;
 	public readonly subpath?: string | undefined;
 
+	private readonly becPlugin: BetterEmbeddedCanvasPlugin;
 	private readonly containerEl: HTMLElement;
 	/**
 	 * Displays file name.
@@ -51,10 +53,11 @@ export class CanvasEmbedComponent extends Component implements EmbedComponent, C
 	 */
 	private readonly mutationObserver: MutationObserver;
 
-	private constructor(ctx: EmbedContext, file: TFile, subpath?: string) {
+	private constructor(becPlugin: BetterEmbeddedCanvasPlugin, ctx: EmbedContext, file: TFile, subpath?: string) {
 		super();
 		this.app = ctx.app;
 		this.plugin = getInternalPlugin(this.app, 'canvas').instance;
+		this.becPlugin = becPlugin;
 		this.ctx = ctx;
 		this.file = file;
 		this.subpath = subpath;
@@ -67,6 +70,7 @@ export class CanvasEmbedComponent extends Component implements EmbedComponent, C
 			el.createSpan('file-embed-icon', iconEl => setIcon(iconEl, 'lucide-layout-dashboard'));
 			el.appendText(' ' + file.basename);
 			el.addEventListener('click', evt => this.openOnClick(evt));
+			el.toggle(becPlugin.settings.get('showCanvasName'));
 		});
 		this.contentEl = this.containerEl.createDiv('canvas-content');
 
@@ -103,10 +107,12 @@ export class CanvasEmbedComponent extends Component implements EmbedComponent, C
 		this.canvas.load();
 		// Triggered each time a file has been modified.
 		this.registerEvent(this.app.vault.on('modify', this.handleModify, this));
+		// Triggered each time settings have been changed.
+		this.registerEvent(this.becPlugin.settings.on('settings-changed', this.handleSettingsChange, this));
 		// Store this embed.
 		store.storeCanvasEmbed(this);
 
-		this.canvas.noInteraction = Boolean(this.app.loadLocalStorage(`${PLUGIN_ID}:no-interaction`));
+		this.canvas.noInteraction = Boolean(this.app.loadLocalStorage(`${this.becPlugin.manifest.id}:no-interaction`));
 		this.toggleInteraction(!this.canvas.noInteraction);
 	}
 
@@ -212,13 +218,20 @@ export class CanvasEmbedComponent extends Component implements EmbedComponent, C
 		let enable = this.canvas.noInteraction ?? false;
 		store.iterateCanvasEmbeds(embed => embed.toggleInteraction(enable));
 		// Save current configuration to the local storage.
-		this.app.saveLocalStorage(`${PLUGIN_ID}:no-interaction`, !enable);
+		this.app.saveLocalStorage(`${this.becPlugin.manifest.id}:no-interaction`, !enable);
+	}
+
+	private handleSettingsChange(changed: Set<BetterEmbeddedCanvasSettingKey>): void {
+		if (changed.has('showCanvasName')) {
+			let show = this.becPlugin.settings.get('showCanvasName');
+			this.headerEl.toggle(show);
+		}
 	}
 
 	/**
 	 * Implementation of `EmbedCreator`.
 	 */
-	public static create(ctx: EmbedContext, file: TFile, subpath?: string): CanvasEmbedComponent {
-		return new CanvasEmbedComponent(ctx, file, subpath);
+	public static create(becPlugin: BetterEmbeddedCanvasPlugin, ctx: EmbedContext, file: TFile, subpath?: string): CanvasEmbedComponent {
+		return new CanvasEmbedComponent(becPlugin, ctx, file, subpath);
 	}
 }

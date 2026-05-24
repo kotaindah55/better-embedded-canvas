@@ -12,10 +12,13 @@ import { patchCanvasEditor } from './patch';
 import { discardAllCanvasEmbeds } from './store';
 import { ReloadNotesPrompt } from './modal';
 import { hookCanvasEditor } from './hook';
-
-export const PLUGIN_ID = 'better-embedded-canvas';
+import { BetterEmbeddedCanvasPluginSettingTab, SettingManager } from './settings';
 
 export class BetterEmbeddedCanvasPlugin extends Plugin {
+	public readonly settings: SettingManager;
+
+	private readonly settingTab: BetterEmbeddedCanvasPluginSettingTab;
+
 	/**
 	 * Stores builtin `EmbedCreator` of embedded canvas.
 	 */
@@ -23,7 +26,11 @@ export class BetterEmbeddedCanvasPlugin extends Plugin {
 
 	public constructor(app: App, manifest: PluginManifest) {
 		super(app, manifest);
+
 		this.builtinCanvasEmbedCreator = null;
+		this.settings = this.addChild(new SettingManager(this));
+		this.settingTab = new BetterEmbeddedCanvasPluginSettingTab(this);
+
 		// Hook and patch `CanvasEditor` in the beginning of execution order.
 		hookCanvasEditor(app);
 		patchCanvasEditor(this);
@@ -68,7 +75,7 @@ export class BetterEmbeddedCanvasPlugin extends Plugin {
 				if (ctx.depth !== undefined && ctx.depth > 2) {
 					return this.builtinCanvasEmbedCreator!(ctx, file, subpath);
 				} else {
-					return CanvasEmbedComponent.create(ctx, file, subpath);
+					return CanvasEmbedComponent.create(this, ctx, file, subpath);
 				}
 			});
 		} else {
