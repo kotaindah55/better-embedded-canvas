@@ -7,8 +7,6 @@ import {
 	type EmbedContext,
 	type TAbstractFile,
 	type TFile,
-	type Vault,
-	type Workspace,
 	Component,
 	Keymap,
 	setIcon,
@@ -17,6 +15,7 @@ import {
 import type { CanvasData } from 'obsidian/canvas';
 import { getCanvasRenderer } from './renderer';
 import { getInternalPlugin } from './utils';
+import { PLUGIN_ID } from './main';
 import { t } from './i18n';
 import * as store from './store';
 
@@ -42,6 +41,10 @@ export class CanvasEmbedComponent extends Component implements EmbedComponent, C
 	 * Displays file name.
 	 */
 	private readonly headerEl: HTMLElement;
+	private readonly mainControlsEl: HTMLElement;
+	private readonly zoomControlsEl: HTMLElement;
+	private readonly openCanvasBtnEl: HTMLElement;
+	private readonly toggleInteractionBtnEl: HTMLElement;
 	private readonly resizeObserver: ResizeObserver;
 	/**
 	 * Notifies canvas height update.
@@ -71,14 +74,25 @@ export class CanvasEmbedComponent extends Component implements EmbedComponent, C
 		this.mutationObserver = new MutationObserver(() => this.updateHeight());
 
 		this.canvas = getCanvasRenderer(this);
-		this.canvas.canvasControlsEl.createDiv({
+		this.zoomControlsEl = this.canvas.canvasControlsEl.firstElementChild as HTMLElement;
+		this.mainControlsEl = this.canvas.canvasControlsEl.createDiv({
 			cls: ['canvas-control-group', 'mod-raised'],
 			prepend: true,
-		}, groupEl => groupEl.createDiv('canvas-control-item', itemEl => {
+		});
+
+		// Button to open canvas fully.
+		this.openCanvasBtnEl = this.mainControlsEl.createDiv('canvas-control-item', itemEl => {
 			setIcon(itemEl, 'lucide-maximize-2');
 			setTooltip(itemEl, t('tooltipOpenCanvas'), { placement: 'left' });
 			itemEl.addEventListener('click', evt => this.openOnClick(evt));
-		}));
+		});
+
+		// Button to toggle interaction.
+		this.toggleInteractionBtnEl = this.mainControlsEl.createDiv('canvas-control-item', itemEl => {
+			setIcon(itemEl, 'pointer');
+			setTooltip(itemEl, t('tooltipDisableInteraction'), { placement: 'left' });
+			itemEl.addEventListener('click', () => this.handletoggleInteractionBtnClick());
+		});
 
 		// Show header in internal embed only, such as that in the editor.
 		if (!this.containerEl.hasClass('internal-embed'))
@@ -91,6 +105,9 @@ export class CanvasEmbedComponent extends Component implements EmbedComponent, C
 		this.registerEvent(this.app.vault.on('modify', this.handleModify, this));
 		// Store this embed.
 		store.storeCanvasEmbed(this);
+
+		this.canvas.noInteraction = Boolean(this.app.loadLocalStorage(`${PLUGIN_ID}:no-interaction`));
+		this.toggleInteraction(!this.canvas.noInteraction);
 	}
 
 	public override onunload(): void {
@@ -148,6 +165,19 @@ export class CanvasEmbedComponent extends Component implements EmbedComponent, C
 	}
 
 	/**
+	 * Toggle user interaction on canvas, e.g. scroll, click, and touch.
+	 */
+	public toggleInteraction(enable: boolean): void {
+		this.canvas.noInteraction = !enable;
+		this.canvas.deselectAll();
+
+		// Show/hide zoom buttons.
+		this.zoomControlsEl.toggle(enable);
+		setIcon(this.toggleInteractionBtnEl, enable ? 'pointer' : 'pointer-off');
+		setTooltip(this.toggleInteractionBtnEl, t(enable ? 'tooltipDisableInteraction' : 'tooltipEnableInteraction'), { placement: 'left' });
+	}
+
+	/**
 	 * Open canvas individually at preferred tab.
 	 */
 	private async openOnClick(evt: PointerEvent): Promise<void> {
@@ -176,6 +206,13 @@ export class CanvasEmbedComponent extends Component implements EmbedComponent, C
 		// Update the canvas when the file is modified.
 		let data = await this.app.vault.cachedRead(this.file);
 		this.setData(data, false);
+	}
+
+	private handletoggleInteractionBtnClick(): void {
+		let enable = this.canvas.noInteraction ?? false;
+		store.iterateCanvasEmbeds(embed => embed.toggleInteraction(enable));
+		// Save current configuration to the local storage.
+		this.app.saveLocalStorage(`${PLUGIN_ID}:no-interaction`, !enable);
 	}
 
 	/**

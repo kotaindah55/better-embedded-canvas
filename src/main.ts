@@ -13,6 +13,8 @@ import { discardAllCanvasEmbeds } from './store';
 import { ReloadNotesPrompt } from './modal';
 import { hookCanvasEditor } from './hook';
 
+export const PLUGIN_ID = 'better-embedded-canvas';
+
 export class BetterEmbeddedCanvasPlugin extends Plugin {
 	/**
 	 * Stores builtin `EmbedCreator` of embedded canvas.

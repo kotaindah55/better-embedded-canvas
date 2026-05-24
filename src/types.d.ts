@@ -33,6 +33,13 @@ declare module 'obsidian' {
 		canvasEl: HTMLElement;
 		canvasRect: CanvasRect;
 		cardMenuEl: HTMLElement;
+		/**
+		 * Indicates that user is not being able to interact with the canvas,
+		 * such as clicking, scrolling, or touching.
+		 * 
+		 * @augmentation
+		 */
+		noInteraction?: boolean;
 		quickSettingsButton: HTMLElement;
 		undoBtnEl: HTMLElement;
 		view: CanvasEditorOwner;
@@ -51,6 +58,10 @@ declare module 'obsidian' {
 		clear(): void;
 		createPlaceholder(): void;
 		/**
+		 * Deselect all selected nodes.
+		 */
+		deselectAll(): void;
+		/**
 		 * Initialize `CanvasEditor`.
 		 */
 		load(): void;
@@ -59,6 +70,9 @@ declare module 'obsidian' {
 		 * afterwards.
 		 */
 		markViewportChanged(): void;
+		onPointerdown(evt: PointerEvent): void;
+		onPointermove(evt: PointerEvent): void;
+		onPriorityPointerdown(evt: PointerEvent): void;
 		/**
 		 * Run when the canvas is being resized.
 		 */
