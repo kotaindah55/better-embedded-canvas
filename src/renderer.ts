@@ -1,4 +1,4 @@
-import type { CanvasEditorOwner } from 'obsidian';
+import type { CanvasEditorOwner } from './obsidian';
 import { CanvasEditor } from './hook';
 
 /**

@@ -5,7 +5,7 @@ import {
 	type InternalPluginIDs,
 	type PluginManifest,
 	Plugin
-} from 'obsidian';
+} from './obsidian';
 import { CanvasEmbedComponent } from './embed';
 import { getInternalPlugin, replaceEmbedCreator } from './utils';
 import { patchCanvasEditor } from './patch';

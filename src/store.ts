@@ -1,4 +1,4 @@
-import { type Debouncer, debounce } from 'obsidian';
+import { type Debouncer, debounce } from './obsidian';
 import type { CanvasEmbedComponent } from './embed';
 import { ensureCanvasRect } from './utils';
 

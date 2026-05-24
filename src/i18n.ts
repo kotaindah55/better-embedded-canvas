@@ -1,4 +1,4 @@
-import { getLanguage } from 'obsidian';
+import { getLanguage } from './obsidian';
 import en from './locales/en';
 import id from './locales/id';
 

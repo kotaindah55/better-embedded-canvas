@@ -1,4 +1,4 @@
-import { type App, ButtonComponent, MarkdownView, Modal } from 'obsidian';
+import { type App, ButtonComponent, MarkdownView, Modal } from './obsidian';
 import { t } from './i18n';
 
 export class ReloadNotesPrompt extends Modal {

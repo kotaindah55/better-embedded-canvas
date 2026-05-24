@@ -1,5 +1,5 @@
-import type { Plugin } from 'obsidian';
 import { around, dedupe } from 'monkey-around';
+import type { Plugin } from './obsidian';
 import { CanvasEditor } from './hook';
 import { CanvasEmbedComponent } from './embed';
 

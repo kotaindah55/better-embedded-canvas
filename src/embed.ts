@@ -1,3 +1,4 @@
+import type { CanvasData } from 'obsidian/canvas';
 import {
 	type App,
 	type CanvasEditor,
@@ -11,8 +12,7 @@ import {
 	Keymap,
 	setIcon,
 	setTooltip
-} from 'obsidian';
-import type { CanvasData } from 'obsidian/canvas';
+} from './obsidian';
 import { getCanvasRenderer } from './renderer';
 import { getInternalPlugin } from './utils';
 import { PLUGIN_ID } from './main';

@@ -1,4 +1,4 @@
-import type { App, CanvasEditor, EmbedCreator, InternalPlugin, InternalPluginIDs } from 'obsidian';
+import type { App, CanvasEditor, EmbedCreator, InternalPlugin, InternalPluginIDs } from './obsidian';
 
 /**
  * Safely replace registered `EmbedCreator` with another `EmbedCreator`.

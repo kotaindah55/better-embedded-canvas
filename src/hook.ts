@@ -1,4 +1,4 @@
-import type { App, CanvasEditor as _CanvasEditor, WorkspaceLeaf } from 'obsidian';
+import type { App, CanvasEditor as _CanvasEditor, WorkspaceLeaf } from './obsidian';
 
 /**
  * Create mock `WorkspaceLeaf` instance.
