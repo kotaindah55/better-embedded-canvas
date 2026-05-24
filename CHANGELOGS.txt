@@ -1,3 +1,19 @@
+[0.2.0]
+### New feature
+
+Enable/disable canvas interaction by selecting button with hand pointer icon in the upper-right corner.
+This prevents user interaction with embedded canvas, e.g. zooming and panning. Thanks to @Azmoinal. See #1.
+
+### Minor changes
+
+- From now, canvas help button is hidden from embedded canvas.
+- Control buttons (located at upper-right corner) is hidden by default. Hover your cursor over embedded canvas to show them.
+
+### Bug fixes
+
+Align canvas node content properly in _Reading view_.
+---
+
 [0.1.1]
 ### Minor change
 Display grid on embedded canvas. On previous version, [Advanced Canvas](https://community.obsidian.md/plugins/advanced-canvas) hid the grid.
