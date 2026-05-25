@@ -1,3 +1,13 @@
+[0.2.1]
+### New setting
+
+Toggle canvas name display by going to **Settings** → **Better Embedded Canvas** → **Show canvas name**.
+
+### Bug fix
+
+Inline title of embedded notes is no longer hidden in embedded canvas.
+---
+
 [0.2.0]
 ### New feature
 
@@ -9,7 +19,7 @@ This prevents user interaction with embedded canvas, e.g. zooming and panning. T
 - From now, canvas help button is hidden from embedded canvas.
 - Control buttons (located at upper-right corner) is hidden by default. Hover your cursor over embedded canvas to show them.
 
-### Bug fixes
+### Bug fix
 
 Align canvas node content properly in _Reading view_.
 ---
