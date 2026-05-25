@@ -39,6 +39,8 @@ export class BetterEmbeddedCanvasPlugin extends Plugin {
 	public override async onload(): Promise<void> {
 		await super.onload();
 
+		// Register plugin setting tab.
+		this.addSettingTab(this.settingTab);
 		// Triggered each time a core plugin is enabled/disabled.
 		this.registerEvent(this.app.internalPlugins.on('change', this.handleInternalPluginChange, this));
 		// Replace current creator of embedded canvas at first.
