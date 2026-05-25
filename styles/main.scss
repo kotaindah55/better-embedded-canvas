@@ -32,4 +32,8 @@ body {
 		margin-left: unset;
 		margin-right: unset;
 	}
+
+	& .inline-title {
+		display: block;
+	}
 }
