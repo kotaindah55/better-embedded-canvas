@@ -4,7 +4,9 @@
 
 Give your embedded canvas better display and interactivity.
 
-![embedded-canvas.png](./assests/embedded-canvas.png)
+![embedded-canvas-2.png](./assests/embedded-canvas-2.png)
+
+> ⤿ Theme: [Adwaita][adwaita-theme] (title bar). Other plugin: [Advanced Canvas][advanced-canvas].
 
 ## 🚀 Features
 
@@ -57,6 +59,10 @@ You can interact with an embedded canvas in the same way as you do with a full c
 
 To learn how to interact with canvas, refer [here][canvas-help].
 
+### Toggle canvas name
+
+By default, the name of embedded canvas is displayed as embed title. You can hide it by going to **Settings** → **Better Embedded Canvas**, then select **Show canvas name** and disable it.
+
 ## ⚠️ Limitation
 
 Embedded canvas cannot be edited directly. To do that, open the canvas directly.
@@ -80,6 +86,7 @@ Thanks to:
 [obsidian-typings]: https://github.com/obsidian-typings/obsidian-typings
 [mnaoumov]: https://github.com/mnaoumov
 [fevol]: https://github.com/Fevol
+[adwaita-theme]: https://community.obsidian.md/themes/adwaita
 
 [latest-version]: https://img.shields.io/github/manifest-json/v/kotaindah55/better-embedded-canvas?label=version&link=https%3A%2F%2Fgithub.com%2Fkotaindah55%2Fbetter-embedded-canvas%2Freleases
 [current-downloads]: https://img.shields.io/github/downloads/kotaindah55/better-embedded-canvas/total?link=https%3A%2F%2Fgithub.com%2Fkotaindah55%2Fbetter-embedded-canvas
