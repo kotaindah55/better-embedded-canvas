@@ -13,6 +13,11 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
+    permissions:
+      id-token: write
+      attestations: write
+      artifact-metadata: write
+
     steps:
       - uses: actions/checkout@v3
 
@@ -38,6 +43,15 @@ jobs:
           cp ../manifest.json .
           cp main.js manifest.json styles.css ${{ env.PLUGIN_NAME }}
           zip -r -9 ${{ env.PLUGIN_NAME }}-${{ env.PLUGIN_VERSION }}.zip ${{ env.PLUGIN_NAME }}
+
+      - name: Attest build provenance
+        uses: actions/attest@v4
+        with:
+          subject-path: |
+            dist/main.js
+            dist/style.css
+            dist/manifest.json
+            "dist/${{ env.PLUGIN_NAME }}-${{ env.PLUGIN_VERSION }}.zip"
 
       - name: Create release
         env:
