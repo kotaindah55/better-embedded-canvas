@@ -95,7 +95,7 @@ export class CanvasEmbedComponent extends Component implements EmbedComponent, C
 		this.toggleInteractionBtnEl = this.mainControlsEl.createDiv('canvas-control-item', itemEl => {
 			setIcon(itemEl, 'pointer');
 			setTooltip(itemEl, t('tooltipDisableInteraction'), { placement: 'left' });
-			itemEl.addEventListener('click', () => this.handletoggleInteractionBtnClick());
+			itemEl.addEventListener('click', () => this.handleInteractionBtnClick());
 		});
 
 		// Show header in internal embed only, such as that in the editor.
@@ -214,7 +214,7 @@ export class CanvasEmbedComponent extends Component implements EmbedComponent, C
 		this.setData(data, false);
 	}
 
-	private handletoggleInteractionBtnClick(): void {
+	private handleInteractionBtnClick(): void {
 		let enable = this.canvas.noInteraction ?? false;
 		store.iterateCanvasEmbeds(embed => embed.toggleInteraction(enable));
 		// Save current configuration to the local storage.
