@@ -50,7 +50,7 @@ jobs:
         with:
           subject-path: |
             dist/main.js
-            dist/style.css
+            dist/styles.css
             dist/manifest.json
             "dist/${{ env.PLUGIN_NAME }}-${{ env.PLUGIN_VERSION }}.zip"
 
