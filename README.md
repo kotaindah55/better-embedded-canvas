@@ -18,6 +18,7 @@ Give your embedded canvas better display and interactivity.
 - Navigate using panning and zooming to move across the canvas.
 - Adjust the height of the embedded canvas in the note.
 - Work on both page preview and canvas.
+- Display embedded canvas on exported PDF.
 - Support [Advanced Canvas][advanced-canvas] plugin.
 
 ## 📦 Installation
@@ -73,7 +74,7 @@ Embedded canvas cannot be edited directly. To do that, open the canvas directly.
 
 ## 🐞 Known issues
 
-- [ ] Embedded canvas nodes are not positioned properly in exported PDF.
+- [x] Embedded canvas nodes are not positioned properly in exported PDF.
 
 ## ©️ Attribution
 
