@@ -1,3 +1,9 @@
+[0.2.2]
+### Bug fix
+
+Content of embedded canvas aligned properly in exported PDF.
+---
+
 [0.2.1]
 ### New setting
 
