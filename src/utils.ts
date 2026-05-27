@@ -1,4 +1,4 @@
-import type { App, CanvasEditor, EmbedCreator, InternalPlugin, InternalPluginIDs } from './obsidian';
+import type { App, EmbedCreator, InternalPlugin, InternalPluginIDs } from './obsidian';
 
 /**
  * Safely replace registered `EmbedCreator` with another `EmbedCreator`.
@@ -19,33 +19,6 @@ export function replaceEmbedCreator(app: App, ext: string, creator: EmbedCreator
 	reg.registerExtension(ext, creator);
 
 	return oldCreator;
-}
-
-/**
- * Set updated `CanvasRect` to `canvasRect` property using current
- * wrapper dimension.
- * 
- * @param canvas `CanvasEditor` whose `canvasRect` property to be updated.
- */
-export function ensureCanvasRect(canvas: CanvasEditor): void {
-	let { wrapperEl } = canvas,
-		wrapperRect = wrapperEl.getBoundingClientRect();
-
-	let left = wrapperRect.left + wrapperEl.clientLeft,
-		top = wrapperRect.top + wrapperEl.clientTop,
-		width = wrapperEl.clientWidth,
-		height = wrapperEl.clientHeight;
-
-	canvas.canvasRect = {
-		left, top, width, height,
-		// Center point.
-		cx: left + width / 2,
-		cy: top + height / 2,
-		minX: -width / 2,
-		minY: -height / 2,
-		maxX: width / 2,
-		maxY: width / 2
-	};
 }
 
 /**

@@ -1,6 +1,5 @@
-import { type Debouncer, debounce } from './obsidian';
+import { type CanvasEditor, type Debouncer, debounce } from './obsidian';
 import type { CanvasEmbedComponent } from './embed';
-import { ensureCanvasRect } from './utils';
 
 /**
  * Stores sets of loaded `CanvasEmbedComponent`s. Each set is mapped by
@@ -12,6 +11,33 @@ const embedStore = new Map<Window, Set<CanvasEmbedComponent>>();
  * Queue of pending `CanvasRect` update.
  */
 const updateQueue = new Map<Window, Debouncer<[], void>>();
+
+/**
+ * Set updated `CanvasRect` to `canvasRect` property using current
+ * wrapper dimension.
+ * 
+ * @param canvas `CanvasEditor` whose `canvasRect` property to be updated.
+ */
+function ensureCanvasRect(canvas: CanvasEditor): void {
+	let { wrapperEl } = canvas,
+		wrapperRect = wrapperEl.getBoundingClientRect();
+
+	let left = wrapperRect.left + wrapperEl.clientLeft,
+		top = wrapperRect.top + wrapperEl.clientTop,
+		width = wrapperEl.clientWidth,
+		height = wrapperEl.clientHeight;
+
+	canvas.canvasRect = {
+		left, top, width, height,
+		// Center point.
+		cx: left + width / 2,
+		cy: top + height / 2,
+		minX: -width / 2,
+		minY: -height / 2,
+		maxX: width / 2,
+		maxY: width / 2
+	};
+}
 
 /**
  * Throttle updating the value of all `CanvasEditor.canvasRect` in
