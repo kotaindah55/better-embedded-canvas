@@ -34,6 +34,10 @@ declare module 'obsidian' {
 		canvasRect: CanvasRect;
 		cardMenuEl: HTMLElement;
 		/**
+		 * Id of currently queued frame request. 0 if no queued frame request.
+		 */
+		frame: number;
+		/**
 		 * Indicates that user is not being able to interact with the canvas,
 		 * such as clicking, scrolling, or touching.
 		 * 
@@ -255,6 +259,28 @@ declare module 'obsidian' {
 		'canvas': 'canvas';
 	}
 
+	type PageSize =
+		| 'A3'
+		| 'A4'
+		| 'A5'
+		| 'Legal'
+		| 'Letter'
+		| 'Tabloid';
+
+	interface PDFExportSettings {
+		/**
+		 * Include file name as title.
+		 */
+		includeName?: boolean;
+		pageSize: PageSize;
+		landscape: boolean;
+		/**
+		 * `0` for default, `1` for none, and `2` for minimal.
+		 */
+		margin: '0' | '1' | '2';
+		downscalePercent: number;
+	}
+
 	/**
 	 * Manages the lifecycle of community plugins.
 	 * 
@@ -265,6 +291,20 @@ declare module 'obsidian' {
 	}
 
 	type TypedViewCreator<T extends View> = (leaf: WorkspaceLeaf) => T;
+
+	interface Vault {
+		/**
+		 * Get user config/setting by key.
+		 */
+		getConfig<T extends keyof VaultConfig>(key: T): VaultConfig[T];
+	}
+
+	interface VaultConfig extends Record<string, unknown> {
+		/**
+		 * Configured through **Export to PDF** modal.
+		 */
+		pdfExportSettings?: PDFExportSettings;
+	}
 
 	interface ViewTypeMap {
 		canvas: CanvasView;

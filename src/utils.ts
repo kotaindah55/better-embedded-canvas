@@ -30,3 +30,11 @@ export function replaceEmbedCreator(app: App, ext: string, creator: EmbedCreator
 export function getInternalPlugin<T extends InternalPluginIDs>(app: App, id: T): InternalPlugin<T> {
 	return app.internalPlugins.getPluginById<T>(id);
 }
+
+/**
+ * Indicate that the element is inside `Document` that will be exported
+ * as PDF.
+ */
+export function beingExportedAsPDF(el: HTMLElement): boolean {
+	return el.matches('body > div.print *');
+}

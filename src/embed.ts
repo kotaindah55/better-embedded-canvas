@@ -14,7 +14,8 @@ import {
 	setTooltip
 } from './obsidian';
 import { getCanvasRenderer } from './renderer';
-import { getInternalPlugin } from './utils';
+import { beingExportedAsPDF, getInternalPlugin } from './utils';
+import { DEFAULT_PAGE_MARGIN, PageSizes } from './page-sizes';
 import type { BetterEmbeddedCanvasPlugin } from './main';
 import type { BetterEmbeddedCanvasSettingKey } from './settings';
 import { t } from './i18n';
@@ -24,6 +25,13 @@ import * as store from './store';
  * Minimum canvas height in px.
  */
 const MIN_CANVAS_HEIGHT = 300;
+
+/**
+ * Indicate that the element is inside canvas node.
+ */
+function insideCanvasNode(el: HTMLElement): boolean {
+	return el.matches('.canvas-node *');
+}
 
 /**
  * Wrapper that manages embedded canvas' lifecycle.
@@ -114,6 +122,34 @@ export class CanvasEmbedComponent extends Component implements EmbedComponent, C
 
 		this.canvas.noInteraction = Boolean(this.app.loadLocalStorage(`${this.becPlugin.manifest.id}:no-interaction`));
 		this.toggleInteraction(!this.canvas.noInteraction);
+
+		// Set embedded canvas width in exported PDF based on selected page
+		// size and margin. Thus, the content inside is aligned properly.
+		//
+		// That way, as a note is being exported, a new hidden `Window` is
+		// created to be used as prerendering container. However, the size of the
+		// `Window` does not match specified page size.
+		if (beingExportedAsPDF(this.containerEl) && !insideCanvasNode(this.containerEl)) {
+			// Get last configured settings.
+			let exportSettings = this.app.vault.getConfig('pdfExportSettings');
+			if (!exportSettings) return;
+
+			let bodyEl = this.containerEl.doc.body,
+				markdownEl = bodyEl.find(':scope > .print > .markdown-preview-view');
+
+			let {
+				pageSize: pageType,
+				margin: marginType,
+				landscape
+			} = exportSettings;
+
+			let pageWidth = landscape ? PageSizes[pageType].height : PageSizes[pageType].width,
+				inlineMargin = marginType == '0' ? DEFAULT_PAGE_MARGIN : 0,
+				inlinePadding = parseInt(markdownEl.getCssPropertyValue('padding-inline').replace('px', ''));
+
+			let canvasWidth = pageWidth - inlineMargin * 2 - inlinePadding * 2;
+			this.containerEl.setCssStyles({ width: canvasWidth + 'px' });
+		}
 	}
 
 	public override onunload(): void {
@@ -144,7 +180,7 @@ export class CanvasEmbedComponent extends Component implements EmbedComponent, C
 
 	public async loadFile(): Promise<void> {
 		let data = await this.app.vault.cachedRead(this.file);
-		this.setData(data, true);
+		await this.setData(data, true);
 	}
 
 	/**
@@ -153,7 +189,7 @@ export class CanvasEmbedComponent extends Component implements EmbedComponent, C
 	 * @param data Unserialized (stringified) JSON data.
 	 * @param firstLoad Set it to true if this is first data loading.
 	 */
-	private setData(data: string, firstLoad: boolean): void {
+	private async setData(data: string, firstLoad: boolean): Promise<void> {
 		try {
 			let serialized = JSON.parse(data) as CanvasData;
 			this.canvas.setData(serialized);
@@ -162,25 +198,34 @@ export class CanvasEmbedComponent extends Component implements EmbedComponent, C
 		}
 
 		if (firstLoad) {
-			// `containerEl` is not immediately loaded into the DOM.
-			this.containerEl.onNodeInserted(() => {
-				this.updateHeight();
-				this.canvas.zoomToFitQueued = true;
-				this.canvas.onResize();
-
-				// Start all observers at first load.
-				this.resizeObserver.observe(this.containerEl);
-				this.mutationObserver.observe(this.containerEl, {
-					attributes: true,
-					attributeFilter: ['width']
-				});
-			}, true);
+			if (beingExportedAsPDF(this.containerEl)) {
+				this.initRender();
+			} else {
+				// Sometimes, `containerEl` is not immediately loaded into the DOM.
+				this.containerEl.onNodeInserted(() => this.initRender(), true);
+			}
 		} else {
 			this.canvas.requestFrame();
 		}
 
 		// Let Advancaed Canvas plugin run on top of this embed.
 		this.app.workspace.trigger('advanced-canvas:canvas-changed', this.canvas);
+	}
+
+	/**
+	 * Intialize canvas rendering.
+	 */
+	private initRender(): void {
+		this.updateHeight();
+		this.canvas.zoomToFitQueued = true;
+		this.canvas.onResize();
+
+		// Start all observers at first load.
+		this.resizeObserver.observe(this.containerEl);
+		this.mutationObserver.observe(this.containerEl, {
+			attributes: true,
+			attributeFilter: ['width']
+		});
 	}
 
 	/**
@@ -211,7 +256,7 @@ export class CanvasEmbedComponent extends Component implements EmbedComponent, C
 		if (aFile != this.file) return;
 		// Update the canvas when the file is modified.
 		let data = await this.app.vault.cachedRead(this.file);
-		this.setData(data, false);
+		await this.setData(data, false);
 	}
 
 	private handleInteractionBtnClick(): void {
