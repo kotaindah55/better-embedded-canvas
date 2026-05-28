@@ -120,7 +120,7 @@ export class CanvasEmbedComponent extends Component implements EmbedComponent, C
 		// Store this embed.
 		store.storeCanvasEmbed(this);
 
-		this.canvas.noInteraction = Boolean(this.app.loadLocalStorage(`${this.becPlugin.manifest.id}:no-interaction`));
+		this.canvas.noInteraction = Boolean(this.app.loadLocalStorage(`${this.becPlugin.manifest.id}:no-interaction`) ?? true);
 		this.toggleInteraction(!this.canvas.noInteraction);
 
 		// Set embedded canvas width in exported PDF based on selected page
