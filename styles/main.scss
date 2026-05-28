@@ -9,6 +9,11 @@ body {
 		position: relative;
 	}
 
+	& > .embed-title {
+		width: fit-content;
+		cursor: pointer;
+	}
+
 	& > .canvas-content {
 		height: var(--embedded-canvas-min-height);
 		border: var(--embedded-canvas-border-width) solid var(--embedded-canvas-border-color);
