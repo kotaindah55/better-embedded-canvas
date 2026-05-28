@@ -1,3 +1,10 @@
+[0.2.3]
+### Minor changes
+
+- Interaction is disabled by default.
+- Use hand pointer style for cursor when hovering canvas name.
+---
+
 [0.2.2]
 ### Bug fix
 
