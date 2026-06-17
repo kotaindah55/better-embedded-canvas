@@ -1,4 +1,4 @@
-import type { CanvasEditorOwner } from './obsidian';
+import { Platform, type CanvasEditorOwner } from './obsidian';
 import { CanvasEditor } from './hook';
 
 /**
@@ -14,8 +14,13 @@ export function getCanvasRenderer(owner: CanvasEditorOwner): CanvasEditor {
 	renderer.quickSettingsButton.parentElement?.detach();
 	// Hide history (undo/redo) buttons.
 	renderer.undoBtnEl.parentElement?.detach();
-	// Hide canvas help button.
-	renderer.canvasControlsEl.lastElementChild?.detach();
+
+	// Canvas help button does not exist on mobile.
+	if (!Platform.isMobile) {
+		// Hide canvas help button.
+		renderer.canvasControlsEl.lastElementChild?.detach();
+	}
+
 	// Hide card menu buttons to prevent user from adding canvas node.
 	renderer.cardMenuEl.detach();
 	// Make it read-only.
