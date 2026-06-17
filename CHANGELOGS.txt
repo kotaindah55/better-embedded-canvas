@@ -1,3 +1,9 @@
+[0.2.4]
+### Bug fix
+
+- Note with embedded canvas can be open on mobile.
+---
+
 [0.2.3]
 ### Minor changes
 
