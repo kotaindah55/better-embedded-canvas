@@ -12,10 +12,15 @@ import { patchCanvasEditor } from './patch';
 import { discardAllCanvasEmbeds } from './store';
 import { ReloadNotesPrompt } from './modal';
 import { hookCanvasEditor } from './hook';
-import { BetterEmbeddedCanvasPluginSettingTab, SettingManager } from './settings';
+import {
+	type BetterEmbeddedCanvasSettings,
+	BetterEmbeddedCanvasPluginSettingTab,
+	SettingManager
+} from './settings';
 
 export class BetterEmbeddedCanvasPlugin extends Plugin {
-	public readonly settings: SettingManager;
+	public override readonly settings: Readonly<BetterEmbeddedCanvasSettings>;
+	public readonly settingManager: SettingManager;
 
 	private readonly settingTab: BetterEmbeddedCanvasPluginSettingTab;
 
@@ -28,7 +33,8 @@ export class BetterEmbeddedCanvasPlugin extends Plugin {
 		super(app, manifest);
 
 		this.builtinCanvasEmbedCreator = null;
-		this.settings = this.addChild(new SettingManager(this));
+		this.settingManager = this.addChild(new SettingManager(this));
+		this.settings = this.settingManager.proxify();
 		this.settingTab = new BetterEmbeddedCanvasPluginSettingTab(this);
 
 		// Hook and patch `CanvasEditor` in the beginning of execution order.

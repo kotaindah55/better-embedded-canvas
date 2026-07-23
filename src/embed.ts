@@ -116,7 +116,7 @@ export class CanvasEmbedComponent extends Component implements EmbedComponent, C
 		// Triggered each time a file has been modified.
 		this.registerEvent(this.app.vault.on('modify', this.handleModify, this));
 		// Triggered each time settings have been changed.
-		this.registerEvent(this.becPlugin.settings.on('settings-changed', this.handleSettingsChange, this));
+		this.registerEvent(this.becPlugin.settingManager.on('settings-changed', this.handleSettingsChange, this));
 		// Store this embed.
 		store.storeCanvasEmbed(this);
 
@@ -268,7 +268,7 @@ export class CanvasEmbedComponent extends Component implements EmbedComponent, C
 
 	private handleSettingsChange(changed: Set<BetterEmbeddedCanvasSettingKey>): void {
 		if (changed.has('showCanvasName')) {
-			let show = this.becPlugin.settings.get('showCanvasName');
+			let show = this.becPlugin.settings.showCanvasName;
 			this.headerEl.toggle(show);
 		}
 	}

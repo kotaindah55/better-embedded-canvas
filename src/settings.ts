@@ -1,6 +1,7 @@
 import {
 	type Debouncer,
 	type EventRef,
+	type SettingDefinitionItem,
 	Component,
 	debounce,
 	Events,
@@ -9,6 +10,7 @@ import {
 } from './obsidian';
 import type { BetterEmbeddedCanvasPlugin } from './main';
 import { t } from './i18n';
+import { getAppVersion } from './utils';
 
 export interface BetterEmbeddedCanvasSettings {
 	/**
@@ -27,23 +29,52 @@ export class BetterEmbeddedCanvasPluginSettingTab extends PluginSettingTab {
 		this.plugin = plugin;
 	}
 
-	public display(): void {
-		this.plugin.settings.defer(true);
+	public override setControlValue<K extends BetterEmbeddedCanvasSettingKey>(
+		key: K,
+		value: BetterEmbeddedCanvasSettings[K]
+	): void {
+		this.plugin.settingManager.commit(key, () => value);
+	}
+
+	public override getControlValue<K extends BetterEmbeddedCanvasSettingKey>(key: K): BetterEmbeddedCanvasSettings[K] {
+		return this.plugin.settings[key];
+	}
+
+	public override getSettingDefinitions(): SettingDefinitionItem<BetterEmbeddedCanvasSettingKey>[] {
+		return [
+			{
+				name: t('settings.showCanvasName.name'),
+				desc: t('settings.showCanvasName.desc'),
+				control: {
+					type: 'toggle',
+					key: 'showCanvasName'
+				}
+			}
+		];
+	}
+
+	public override display(): void {
+		// Do not use legacy setting UI for 1.13.x or higher
+		let appVer = getAppVersion();
+		if (appVer.major >= 1 && appVer.minor >= 13)
+			return;
+
+		this.plugin.settingManager.defer(true);
 
 		// Show canvas name
 		new Setting(this.containerEl)
 			.setName(t('settings.showCanvasName.name'))
 			.setDesc(t('settings.showCanvasName.desc'))
 			.addToggle(comp => comp
-				.setValue(this.plugin.settings.get('showCanvasName'))
-				.onChange(val => this.plugin.settings.commit('showCanvasName', () => val))
+				.setValue(this.getControlValue('showCanvasName'))
+				.onChange(this.setControlValue.bind(this, 'showCanvasName'))
 			);
 	}
 
 	public override hide(): void {
 		super.hide();
 		this.containerEl.empty();
-		this.plugin.settings.defer(false);
+		this.plugin.settingManager.defer(false);
 	}
 }
 
@@ -76,6 +107,7 @@ export class SettingManager extends Component {
 		this.changed = new Set();
 	}
 
+	// eslint-disable-next-line @typescript-eslint/no-misused-promises
 	public override async onload(): Promise<void> {
 		// Obtain plugin settings.
 		Object.assign(this.settings, await this.plugin.loadData());
@@ -90,7 +122,8 @@ export class SettingManager extends Component {
 	 * Triggered when changed the settings.
 	 */
 	public on(name: 'settings-changed', cb: (changed: Set<BetterEmbeddedCanvasSettingKey>) => unknown, ctx?: unknown): EventRef;
-	public on(name: string, cb: (...data: any[]) => any, ctx?: unknown): EventRef {
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	public on(name: string, cb: (...data: any[]) => unknown, ctx?: unknown): EventRef {
 		return this.dispatcher.on(name, cb, ctx);
 	}
 
@@ -140,6 +173,32 @@ export class SettingManager extends Component {
 	 */
 	public get<K extends BetterEmbeddedCanvasSettingKey>(key: K): BetterEmbeddedCanvasSettings[K] {
 		return this.settings[key];
+	}
+
+	/**
+	 * Get proxified settings.
+	 * 
+	 * @param readonly Whether settings are set to readonly. Default to true.
+	 */
+	public proxify(readonly = true): BetterEmbeddedCanvasSettings {
+		return new Proxy(this.settings, {
+			get<K extends BetterEmbeddedCanvasSettingKey>(
+				settings: BetterEmbeddedCanvasSettings,
+				key: K
+			): BetterEmbeddedCanvasSettings[K] {
+				return settings[key];
+			},
+
+			set<K extends BetterEmbeddedCanvasSettingKey>(
+				settings: BetterEmbeddedCanvasSettings,
+				key: K,
+				newValue: BetterEmbeddedCanvasSettings[K]
+			): boolean {
+				if (readonly) return false;
+				settings[key] = newValue;
+				return true;
+			}
+		});
 	}
 
 	/**

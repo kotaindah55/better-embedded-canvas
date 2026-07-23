@@ -1,4 +1,10 @@
-import type { App, EmbedCreator, InternalPlugin, InternalPluginIDs } from './obsidian';
+import {
+	type App,
+	type EmbedCreator,
+	type InternalPlugin,
+	type InternalPluginIDs,
+	apiVersion
+} from './obsidian';
 
 /**
  * Safely replace registered `EmbedCreator` with another `EmbedCreator`.
@@ -37,4 +43,20 @@ export function getInternalPlugin<T extends InternalPluginIDs>(app: App, id: T):
  */
 export function beingExportedAsPDF(el: HTMLElement): boolean {
 	return el.matches('body > div.print *');
+}
+
+/**
+ * Get serialized app version.
+ */
+export function getAppVersion(): {
+	major: number,
+	minor: number,
+	patch: number
+} {
+	let serials = apiVersion.split('.').map(ver => parseInt(ver));
+	return {
+		major: serials[0] ?? 0,
+		minor: serials[1] ?? 0,
+		patch: serials[2] ?? 0
+	};
 }
