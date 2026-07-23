@@ -14,7 +14,7 @@ import {
 	setTooltip
 } from './obsidian';
 import { getCanvasRenderer } from './renderer';
-import { beingExportedAsPDF, getInternalPlugin } from './utils';
+import { beingExportedAsPDF, getInternalPlugin, toPx } from './utils';
 import { DEFAULT_PAGE_MARGIN, PageSizes } from './page-sizes';
 import type { BetterEmbeddedCanvasPlugin } from './main';
 import type { BetterEmbeddedCanvasSettingKey } from './settings';
@@ -114,8 +114,10 @@ export class CanvasEmbedComponent extends Component implements EmbedComponent, C
 	public override onload(): void {
 		this.canvas.load();
 		// Triggered each time a file has been modified.
+		// eslint-disable-next-line @typescript-eslint/unbound-method
 		this.registerEvent(this.app.vault.on('modify', this.handleModify, this));
 		// Triggered each time settings have been changed.
+		// eslint-disable-next-line @typescript-eslint/unbound-method
 		this.registerEvent(this.becPlugin.settingManager.on('settings-changed', this.handleSettingsChange, this));
 		// Store this embed.
 		store.storeCanvasEmbed(this);
@@ -148,7 +150,7 @@ export class CanvasEmbedComponent extends Component implements EmbedComponent, C
 				inlinePadding = parseInt(markdownEl.getCssPropertyValue('padding-inline').replace('px', ''));
 
 			let canvasWidth = pageWidth - inlineMargin * 2 - inlinePadding * 2;
-			this.containerEl.setCssStyles({ width: canvasWidth + 'px' });
+			this.containerEl.setCssStyles({ width: toPx(canvasWidth) });
 		}
 	}
 
@@ -231,9 +233,9 @@ export class CanvasEmbedComponent extends Component implements EmbedComponent, C
 	/**
 	 * Open canvas individually at preferred tab.
 	 */
-	private async openOnClick(evt: PointerEvent): Promise<void> {
+	private openOnClick(evt: PointerEvent): void {
 		let leaf = this.app.workspace.getLeaf(Keymap.isModEvent(evt));
-		await leaf.openFile(this.file);
+		void leaf.openFile(this.file);
 	}
 
 	/**
@@ -247,8 +249,8 @@ export class CanvasEmbedComponent extends Component implements EmbedComponent, C
 		// is stored as "width" attribute value.
 		let height = Number(this.containerEl.getAttr('width'));
 		this.contentEl.setCssStyles({ height: height && height > MIN_CANVAS_HEIGHT
-			? height + 'px'
-			: MIN_CANVAS_HEIGHT + 'px'
+			? toPx(height)
+			: toPx(MIN_CANVAS_HEIGHT)
 		});
 	}
 

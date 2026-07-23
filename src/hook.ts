@@ -18,7 +18,7 @@ function mockLeaf(app: App): WorkspaceLeaf {
  * Hook and store `CanvasEditor` constructor.
  */
 export function hookCanvasEditor(app: App): void {
-	let canvasViewCreator = app.internalPlugins.getPluginById('canvas').views['canvas'],
+	let canvasViewCreator = app.internalPlugins.getPluginById('canvas').views.canvas,
 		canvasView = canvasViewCreator(mockLeaf(app));
 
 	CanvasEditor = canvasView.canvas.constructor as typeof _CanvasEditor;

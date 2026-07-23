@@ -46,6 +46,13 @@ export function beingExportedAsPDF(el: HTMLElement): boolean {
 }
 
 /**
+ * Convert number into `px` length.
+ */
+export function toPx(value: number): string {
+	return String(value) + 'px';
+}
+
+/**
  * Get serialized app version.
  */
 export function getAppVersion(): {

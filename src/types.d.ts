@@ -159,7 +159,7 @@ declare module 'obsidian' {
 		 * Run once before attaching this to the DOM. You should wrap your code
 		 * that loads file content here.
 		 */
-		loadFile(): void;
+		loadFile(): Promise<void>;
 	}
 
 	interface EmbedContext {
@@ -250,7 +250,7 @@ declare module 'obsidian' {
 		/**
 		 * Triggered when an internal plugin has been enabled or disabled.
 		 */
-		on(name: 'change', callback: (plugin: InternalPlugin<InternalPluginIDs>) => unknown, ctx?: any): EventRef;
+		on(name: 'change', callback: (plugin: InternalPlugin<InternalPluginIDs>) => unknown, ctx?: unknown): EventRef;
 	}
 
 	type InternalPluginViewTypes<T extends InternalPluginIDs> = InternalPluginViewTypesMap[T];

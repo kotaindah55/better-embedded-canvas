@@ -1,4 +1,4 @@
-import { Platform, type CanvasEditorOwner } from './obsidian';
+import { type CanvasEditorOwner, Platform } from './obsidian';
 import { CanvasEditor } from './hook';
 
 /**
