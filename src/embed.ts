@@ -77,13 +77,10 @@ export class CanvasEmbedComponent extends Component implements EmbedComponent, C
 		this.headerEl = this.containerEl.createDiv('embed-title', el => {
 			el.createSpan('file-embed-icon', iconEl => setIcon(iconEl, 'lucide-layout-dashboard'));
 			el.appendText(' ' + file.basename);
-			el.addEventListener('click', evt => this.openOnClick(evt));
-			el.toggle(becPlugin.settings.get('showCanvasName'));
+			el.addEventListener('click', this.openOnClick.bind(this));
+			el.toggle(becPlugin.settings.showCanvasName);
 		});
 		this.contentEl = this.containerEl.createDiv('canvas-content');
-
-		this.resizeObserver = new ResizeObserver(() => this.canvas.onResize());
-		this.mutationObserver = new MutationObserver(() => this.updateHeight());
 
 		this.canvas = getCanvasRenderer(this);
 		this.zoomControlsEl = this.canvas.canvasControlsEl.firstElementChild as HTMLElement;
@@ -92,18 +89,21 @@ export class CanvasEmbedComponent extends Component implements EmbedComponent, C
 			prepend: true,
 		});
 
+		this.resizeObserver = new ResizeObserver(this.canvas.onResize.bind(this.canvas));
+		this.mutationObserver = new MutationObserver(this.updateHeight.bind(this));
+
 		// Button to open canvas fully.
 		this.openCanvasBtnEl = this.mainControlsEl.createDiv('canvas-control-item', itemEl => {
 			setIcon(itemEl, 'lucide-maximize-2');
 			setTooltip(itemEl, t('tooltipOpenCanvas'), { placement: 'left' });
-			itemEl.addEventListener('click', evt => this.openOnClick(evt));
+			itemEl.addEventListener('click', this.openOnClick.bind(this));
 		});
 
 		// Button to toggle interaction.
 		this.toggleInteractionBtnEl = this.mainControlsEl.createDiv('canvas-control-item', itemEl => {
 			setIcon(itemEl, 'pointer');
 			setTooltip(itemEl, t('tooltipDisableInteraction'), { placement: 'left' });
-			itemEl.addEventListener('click', () => this.handleInteractionBtnClick());
+			itemEl.addEventListener('click', this.handleInteractionBtnClick.bind(this));
 		});
 
 		// Show header in internal embed only, such as that in the editor.
@@ -202,7 +202,7 @@ export class CanvasEmbedComponent extends Component implements EmbedComponent, C
 				this.initRender();
 			} else {
 				// Sometimes, `containerEl` is not immediately loaded into the DOM.
-				this.containerEl.onNodeInserted(() => this.initRender(), true);
+				this.containerEl.onNodeInserted(this.initRender.bind(this), true);
 			}
 		} else {
 			this.canvas.requestFrame();

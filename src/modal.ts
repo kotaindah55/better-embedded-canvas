@@ -20,7 +20,7 @@ export class ReloadNotesPrompt extends Modal {
 
 			new ButtonComponent(el)
 				.setButtonText(i18next.t('dialogue.button-cancel'))
-				.onClick(() => this.close());
+				.onClick(this.close.bind(this));
 		});
 	}
 
