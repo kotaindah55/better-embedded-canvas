@@ -1,3 +1,9 @@
+[0.3.0]
+### Major change
+
+Now, Better Embedded Canvas plugin uses latest API for plugin settings (starting from Obsidian 1.13.x).
+---
+
 [0.2.4]
 ### Bug fix
 
