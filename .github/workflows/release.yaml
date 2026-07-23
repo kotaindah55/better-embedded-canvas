@@ -1,8 +1,8 @@
 name: Release Obsidian plugin
 
 env:
-    PLUGIN_NAME: better-embedded-canvas
-    PLUGIN_VERSION: ${GITHUB_REF#refs/tags/}
+  PLUGIN_NAME: better-embedded-canvas
+  PLUGIN_VERSION: ${GITHUB_REF#refs/tags/}
 
 on:
   push:
@@ -37,13 +37,10 @@ jobs:
         run: |
           npm run changelog
 
-      - name: Create zip archive
+      - name: Copy manifest.json
         run: |
           cd dist
-          mkdir ${{ env.PLUGIN_NAME }}
           cp ../manifest.json .
-          cp main.js manifest.json styles.css ${{ env.PLUGIN_NAME }}
-          zip -r -9 ${{ env.PLUGIN_NAME }}-${{ env.PLUGIN_VERSION }}.zip ${{ env.PLUGIN_NAME }}
 
       - name: Attest build provenance
         uses: actions/attest@v4
@@ -52,7 +49,6 @@ jobs:
             dist/main.js
             dist/styles.css
             dist/manifest.json
-            "dist/${{ env.PLUGIN_NAME }}-${{ env.PLUGIN_VERSION }}.zip"
 
       - name: Create release
         env:
@@ -62,4 +58,4 @@ jobs:
           gh release create "${{ env.PLUGIN_VERSION }}" \
             --title="${{ env.PLUGIN_VERSION }}" \
             --notes-file=../CHANGELOG.md \
-            main.js manifest.json styles.css ${{ env.PLUGIN_NAME }}-${{ env.PLUGIN_VERSION }}.zip
+            main.js manifest.json styles.css
