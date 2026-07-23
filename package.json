@@ -23,19 +23,17 @@
 	"devDependencies": {
 		"@eslint/js": "^9.39.2",
 		"@types/node": "^24.12.4",
-		"@typescript-eslint/eslint-plugin": "^8.59.0",
-		"@typescript-eslint/parser": "^8.59.0",
-		"esbuild": "^0.28.0",
-		"eslint-plugin-jsdoc": "^63.0.0",
-		"eslint-plugin-obsidianmd": "^0.3.0",
+		"esbuild": "~0.28.0",
+		"eslint-plugin-obsidianmd": "~0.4.1",
 		"i18next": "^26.2.0",
-		"obsidian": "latest",
-		"sass": "^1.100.0",
+		"obsidian": "~1.13.1",
+		"sass": "~1.100.0",
 		"tsx": "^4.20.3",
+		"eslint": "^10.7.0",
 		"typescript": "^6.0.3",
-		"typescript-eslint": "^8.59.4"
+		"typescript-eslint": "~8.59.4"
 	},
 	"dependencies": {
-		"monkey-around": "3.0.0"
+		"monkey-around": "^3.0.0"
 	}
 }
