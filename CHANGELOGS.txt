@@ -1,3 +1,9 @@
+[0.3.1]
+### Bug fix
+
+- **(Dev)** Fix linting errors caused by disabling eslint rules using directive comments.
+---
+
 [0.3.0]
 ### Major change
 
