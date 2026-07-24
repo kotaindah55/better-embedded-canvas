@@ -1,0 +1,13 @@
+diff --git a/node_modules/obsidian/obsidian.d.ts b/node_modules/obsidian/obsidian.d.ts
+index 984a4a4..25f3bb2 100644
+--- a/node_modules/obsidian/obsidian.d.ts
++++ b/node_modules/obsidian/obsidian.d.ts
+@@ -1846,7 +1846,7 @@ export class Component {
+      * @virtual
+      * @since 0.9.7
+      */
+-    onload(): void;
++    onload(): Promise<void> | void;
+     /**
+      * Unload this component and its children
+      * @public
