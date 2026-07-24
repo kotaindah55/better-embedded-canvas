@@ -114,11 +114,9 @@ export class CanvasEmbedComponent extends Component implements EmbedComponent, C
 	public override onload(): void {
 		this.canvas.load();
 		// Triggered each time a file has been modified.
-		// eslint-disable-next-line @typescript-eslint/unbound-method
-		this.registerEvent(this.app.vault.on('modify', this.handleModify, this));
+		this.registerEvent(this.app.vault.on('modify', this.handleModify.bind(this)));
 		// Triggered each time settings have been changed.
-		// eslint-disable-next-line @typescript-eslint/unbound-method
-		this.registerEvent(this.becPlugin.settingManager.on('settings-changed', this.handleSettingsChange, this));
+		this.registerEvent(this.becPlugin.settingManager.on('settings-changed', this.handleSettingsChange.bind(this)));
 		// Store this embed.
 		store.storeCanvasEmbed(this);
 

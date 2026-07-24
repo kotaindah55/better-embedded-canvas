@@ -48,8 +48,7 @@ export class BetterEmbeddedCanvasPlugin extends Plugin {
 		// Register plugin setting tab.
 		this.addSettingTab(this.settingTab);
 		// Triggered each time a core plugin is enabled/disabled.
-		// eslint-disable-next-line @typescript-eslint/unbound-method
-		this.registerEvent(this.app.internalPlugins.on('change', this.handleInternalPluginChange, this));
+		this.registerEvent(this.app.internalPlugins.on('change', this.handleInternalPluginChange.bind(this)));
 		// Replace current creator of embedded canvas at first.
 		this.handleInternalPluginChange(getInternalPlugin(this.app, 'canvas'));
 	}
@@ -65,8 +64,7 @@ export class BetterEmbeddedCanvasPlugin extends Plugin {
 	}
 
 	private handleInternalPluginChange<T extends InternalPluginIDs>(plugin: InternalPlugin<T>): void {
-		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-		if (plugin.instance.id != 'canvas') return;
+		if (plugin.instance.id as string != 'canvas') return;
 
 		// `CanvasEmbedComponent` can only be displayed if Canvas plugin is
 		// enabled.

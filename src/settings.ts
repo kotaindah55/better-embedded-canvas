@@ -107,7 +107,6 @@ export class SettingManager extends Component {
 		this.changed = new Set();
 	}
 
-	// eslint-disable-next-line @typescript-eslint/no-misused-promises
 	public override async onload(): Promise<void> {
 		// Obtain plugin settings.
 		Object.assign(this.settings, await this.plugin.loadData());
@@ -122,7 +121,6 @@ export class SettingManager extends Component {
 	 * Triggered when changed the settings.
 	 */
 	public on(name: 'settings-changed', cb: (changed: Set<BetterEmbeddedCanvasSettingKey>) => unknown, ctx?: unknown): EventRef;
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	public on(name: string, cb: (...data: any[]) => unknown, ctx?: unknown): EventRef {
 		return this.dispatcher.on(name, cb, ctx);
 	}
