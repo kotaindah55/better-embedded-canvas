@@ -2,6 +2,7 @@ import { around, dedupe } from 'monkey-around';
 import { type Plugin, Platform } from './obsidian';
 import { CanvasEditor } from './hook';
 import { CanvasEmbedComponent } from './embed';
+import { ensureCanvasRect, lockEvent, trackPointer } from './utils';
 import * as store from './store';
 
 const enum MouseButton {
@@ -20,13 +21,22 @@ export function patchCanvasEditor(plugin: Plugin): void {
 			if (this.noInteraction) return;
 
 			oldFn.call(this, evt);
-			// Prevent containing editor from being zoomed.
+			// Prevent embedding note from being zoomed.
 			if (this.view instanceof CanvasEmbedComponent)
 				evt.stopPropagation();
 		}),
 
 		onPointerdown: oldFn => dedupe(plugin.manifest.id, oldFn, function (this: CanvasEditor, evt) {
 			if (this.noInteraction) return;
+
+			if (this.view instanceof CanvasEmbedComponent) {
+				// Prevent embedding canvas from dragging.
+				evt.stopPropagation();
+				// Update canvas rect dimension. Thus, selection can be performed from
+				// correct position.
+				ensureCanvasRect(this);
+			}
+
 			oldFn.call(this, evt);
 		}),
 
