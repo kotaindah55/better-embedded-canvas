@@ -130,12 +130,6 @@ declare module 'obsidian' {
 		 * to add, change, or remove selection.
 		 */
 		updateSelection(selectCb: () => void): void;
-		/**
-		 * Most active canvas that is being panned.
-		 * 
-		 * @augmentation
-		 */
-		static beingPannedCanvas?: CanvasEditor | null;
 	}
 
 	interface CanvasEditorOwner {

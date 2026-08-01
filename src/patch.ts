@@ -2,7 +2,7 @@ import { around, dedupe } from 'monkey-around';
 import { type Plugin, Platform } from './obsidian';
 import { CanvasEditor } from './hook';
 import { CanvasEmbedComponent } from './embed';
-import { lockEvent, trackPointer } from './utils';
+import * as store from './store';
 
 const enum MouseButton {
 	Left = 0,
@@ -15,12 +15,6 @@ const enum MouseButton {
  * unloading the plugin.
  */
 export function patchCanvasEditor(plugin: Plugin): void {
-	// Added as prototype property, not as instance property, to be able to
-	// be shared among CanvasEditor instances.
-	CanvasEditor.beingPannedCanvas = null;
-
-	plugin.register(() => void delete CanvasEditor.beingPannedCanvas);
-
 	plugin.register(around(CanvasEditor.prototype, {
 		onWheel: oldFn => dedupe(plugin.manifest.id, oldFn, function (this: CanvasEditor, evt) {
 			if (this.noInteraction) return;
@@ -36,20 +30,27 @@ export function patchCanvasEditor(plugin: Plugin): void {
 			oldFn.call(this, evt);
 		}),
 
+		// Fully rewrite
 		onPriorityPointerdown: oldFn => dedupe(plugin.manifest.id, oldFn, function (this: CanvasEditor, evt) {
 			if (this.noInteraction || evt.pointerType != 'mouse') return;
+
+			// Because of the event in capturing phase, the order will be like this:
+			// - Parent canvas is stored first.
+			// - Then, embedded canvas is stored subsequently, replacing the parent.
+			// - Panning will only occur on the stored canvas, In this case, it is
+			//   the embedded one.
 			
 			// Panning using middle button.
 			if (evt.button == MouseButton.Middle) {
 				let startPos = this.posFromEvt(evt);
 
-				CanvasEditor.beingPannedCanvas = this;
+				store.setPannedCanvas(this);
 				this.setDragging(true);
 				evt.preventDefault();
 				
 				let abort = trackPointer(evt, {
 					move: evt => {
-						if (CanvasEditor.beingPannedCanvas == this) {
+						if (store.isPannedCanvas(this)) {
 							// Pan the canvas to the current pointer position.
 							let currPos = this.posFromEvt(evt);
 							this.panBy(startPos.x - currPos.x, startPos.y - currPos.y);
@@ -65,7 +66,7 @@ export function patchCanvasEditor(plugin: Plugin): void {
 					},
 
 					cleanup: () => {
-						if (CanvasEditor.beingPannedCanvas == this) CanvasEditor.beingPannedCanvas = null;
+						store.removePannedCanvas(this);
 						this.setDragging(false);
 					}
 				});
@@ -75,13 +76,13 @@ export function patchCanvasEditor(plugin: Plugin): void {
 			if (evt.button == MouseButton.Right || Platform.isMacOS && evt.button == MouseButton.Middle && evt.ctrlKey) {
 				let startPos = this.posFromEvt(evt);
 
-				CanvasEditor.beingPannedCanvas = this;
+				store.setPannedCanvas(this);
 				this.setDragging(true);
 				evt.preventDefault();
 
 				let abort = trackPointer(evt, {
 					move: evt => {
-						if (CanvasEditor.beingPannedCanvas == this) {
+						if (store.isPannedCanvas(this)) {
 							let currPos = this.posFromEvt(evt);
 							this.panBy(startPos.x - currPos.x, startPos.y - currPos.y);
 						} else {
@@ -90,7 +91,7 @@ export function patchCanvasEditor(plugin: Plugin): void {
 					},
 
 					cleanup: () => {
-						if (CanvasEditor.beingPannedCanvas == this) CanvasEditor.beingPannedCanvas = null;
+						store.removePannedCanvas(this);
 						this.setDragging(false);
 
 						// Do not open context menu once panning is ended.
@@ -112,8 +113,7 @@ export function patchCanvasEditor(plugin: Plugin): void {
 
 		unload: oldFn => dedupe(plugin.manifest.id, oldFn, function (this: CanvasEditor) {
 			oldFn.call(this);
-			// Remove this canvas from beingPannedCanvas variable.
-			if (CanvasEditor.beingPannedCanvas == this) CanvasEditor.beingPannedCanvas = null;
+			store.removePannedCanvas(this);
 		}),
 
 		updateSelection: oldFn => dedupe(plugin.manifest.id, oldFn, function (this: CanvasEditor, selectCb) {
