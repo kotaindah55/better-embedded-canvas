@@ -1,3 +1,10 @@
+[0.3.2]
+### Bug fix
+
+- Note is unable to be scrolled when swiping over embedded canvas in mobile.
+- Panning embedded canvas causes parent canvas being moved at the same time. See #2.
+---
+
 [0.3.1]
 ### Bug fix
 
