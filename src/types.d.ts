@@ -76,15 +76,32 @@ declare module 'obsidian' {
 		markViewportChanged(): void;
 		onPointerdown(evt: PointerEvent): void;
 		onPointermove(evt: PointerEvent): void;
+		/**
+		 * Run when the canvas being pointed down. Handles panning using middle
+		 * mouse button.
+		 */
 		onPriorityPointerdown(evt: PointerEvent): void;
 		/**
 		 * Run when the canvas is being resized.
 		 */
 		onResize(): void;
 		/**
+		 * Run when the canvas being touched down, e.g. on mobile device. Handles
+		 * panning using touch.
+		 */
+		onTouchdown(evt: PointerEvent): void;
+		/**
 		 * Run when the canvas is being scrolled.
 		 */
 		onWheel(evt: WheelEvent): void;
+		/**
+		 * Pan canvas by given length.
+		 */
+		panBy(x: number, y: number): void;
+		/**
+		 * Convert `MouseEvent` position fields to `Point`.
+		 */
+		posFromEvt(evt: MouseEvent): Point;
 		/**
 		 * Enqueue canvas display update.
 		 */
@@ -93,6 +110,10 @@ declare module 'obsidian' {
 		 * Serialize `CanvasData` into nodes and edges.
 		 */
 		setData(data: CanvasData): void;
+		/**
+		 * Toggle dragging state.
+		 */
+		setDragging(enable: boolean): void;
 		/**
 		 * Toggle read-only state.
 		 */
@@ -109,6 +130,12 @@ declare module 'obsidian' {
 		 * to add, change, or remove selection.
 		 */
 		updateSelection(selectCb: () => void): void;
+		/**
+		 * Most active canvas that is being panned.
+		 * 
+		 * @augmentation
+		 */
+		static beingPannedCanvas?: CanvasEditor | null;
 	}
 
 	interface CanvasEditorOwner {
