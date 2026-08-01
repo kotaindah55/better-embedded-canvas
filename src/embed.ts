@@ -179,8 +179,8 @@ export class CanvasEmbedComponent extends Component implements EmbedComponent, C
 		setTooltip(this.toggleInteractionBtnEl, t(enable ? 'tooltipDisableInteraction' : 'tooltipEnableInteraction'), { placement: 'left' });
 	}
 
+	// Dummy properties. Added to prevent `undefined`-related errors.
 	public requestSave(): void {}
-
 	public saveLocalData(): void {}
 
 	public async loadFile(): Promise<void> {
