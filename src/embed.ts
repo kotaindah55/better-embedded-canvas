@@ -168,6 +168,11 @@ export class CanvasEmbedComponent extends Component implements EmbedComponent, C
 		this.canvas.deselectAll();
 		this.canvas.noInteraction = !enable;
 
+		// With interaction disabled, swiping over embedded canvas should scroll
+		// the embedding note. This class changes the value of the CSS property
+		// `touch-action` to `auto`. See styles/main.scss.
+		this.canvas.wrapperEl.toggleClass('mod-no-interaction', !enable);
+
 		// Show/hide zoom buttons.
 		this.zoomControlsEl.toggle(enable);
 		setIcon(this.toggleInteractionBtnEl, enable ? 'pointer' : 'pointer-off');
