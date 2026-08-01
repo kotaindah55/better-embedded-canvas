@@ -3,7 +3,7 @@ import {
 	type CanvasEditor,
 	type EmbedCreator,
 	type InternalPlugin,
-	type InternalPluginIDs,
+	type InternalPluginId,
 	apiVersion
 } from './obsidian';
 
@@ -34,7 +34,7 @@ export function replaceEmbedCreator(app: App, ext: string, creator: EmbedCreator
  * @param app `App` instance.
  * @param id Internal plugin id.
  */
-export function getInternalPlugin<T extends InternalPluginIDs>(app: App, id: T): InternalPlugin<T> {
+export function getInternalPlugin<T extends InternalPluginId>(app: App, id: T): InternalPlugin<T> {
 	return app.internalPlugins.getPluginById<T>(id);
 }
 

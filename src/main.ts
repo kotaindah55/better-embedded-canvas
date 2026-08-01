@@ -2,7 +2,7 @@ import {
 	type App,
 	type EmbedCreator,
 	type InternalPlugin,
-	type InternalPluginIDs,
+	type InternalPluginId,
 	type PluginManifest,
 	Plugin
 } from './obsidian';

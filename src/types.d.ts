@@ -229,7 +229,7 @@ declare module 'obsidian' {
 	 * 
 	 * @typeonly
 	 */
-	class InternalPlugin<T extends InternalPluginIDs> extends Component {
+	class InternalPlugin<T extends InternalPluginId> extends Component {
 		/**
 		 * Indicates whether it is enabled.
 		 */
@@ -244,7 +244,7 @@ declare module 'obsidian' {
 		};
 	}
 
-	type InternalPluginIDs = keyof InternalPluginInstanceMap;
+	type InternalPluginId = keyof InternalPluginInstanceMap;
 
 	interface InternalPluginInstance {
 		/**
@@ -267,14 +267,14 @@ declare module 'obsidian' {
 		 * Get internal plugin by its id, regardless of whether it is enabled or
 		 * not.
 		 */
-		getPluginById<T extends InternalPluginIDs>(id: T): InternalPlugin<T>;
+		getPluginById<T extends InternalPluginId>(id: T): InternalPlugin<T>;
 		/**
 		 * Triggered when an internal plugin has been enabled or disabled.
 		 */
-		on(name: 'change', callback: (plugin: InternalPlugin<InternalPluginIDs>) => unknown, ctx?: unknown): EventRef;
+		on(name: 'change', callback: (plugin: InternalPlugin<InternalPluginId>) => unknown, ctx?: unknown): EventRef;
 	}
 
-	type InternalPluginViewTypes<T extends InternalPluginIDs> = InternalPluginViewTypesMap[T];
+	type InternalPluginViewTypes<T extends InternalPluginId> = InternalPluginViewTypesMap[T];
 
 	interface InternalPluginViewTypesMap {
 		'canvas': 'canvas';
