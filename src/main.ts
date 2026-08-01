@@ -10,7 +10,7 @@ import { CanvasEmbedComponent } from './embed';
 import { getInternalPlugin, replaceEmbedCreator } from './utils';
 import { patchCanvasEditor } from './patch';
 import { discardAllCanvasEmbeds } from './store';
-import { ReloadNotesPrompt } from './modal';
+import { noticeReload } from './notice';
 import { hookCanvasEditor } from './hook';
 import {
 	type BetterEmbeddedCanvasSettings,
@@ -60,7 +60,7 @@ export class BetterEmbeddedCanvasPlugin extends Plugin {
 		if (this.builtinCanvasEmbedCreator)
 			replaceEmbedCreator(this.app, 'canvas', this.builtinCanvasEmbedCreator);
 
-		ReloadNotesPrompt.open(this.app);
+		noticeReload(this.app);
 	}
 
 	private handleInternalPluginChange<T extends InternalPluginIDs>(plugin: InternalPlugin<T>): void {

@@ -43,10 +43,10 @@ export default defineConfig({
 		'no-prototype-builtins': 'off',
 		'no-cond-assign': 'off',
 		'obsidianmd/ui/sentence-case': [
-			'error', { ignoreRegex: ['“[^“”]+”'] }
+			'error', { brands: ['Better Embedded Canvas'] }
 		],
 		'obsidianmd/ui/sentence-case-locale-module': [
-			'error', { ignoreRegex: ['“[^“”]+”'] }
+			'error', { brands: ['Better Embedded Canvas'] }
 		],
 		'@typescript-eslint/no-empty-function': 'off',
 		'@typescript-eslint/await-thenable': 'off',

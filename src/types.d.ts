@@ -280,6 +280,10 @@ declare module 'obsidian' {
 		'canvas': 'canvas';
 	}
 
+	interface Notice {
+		addButton(label: string, onClick: (evt: PointerEvent) => void): this;
+	}
+
 	type PageSize =
 		| 'A3'
 		| 'A4'

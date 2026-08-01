@@ -2,10 +2,10 @@ export default {
 	tooltipOpenCanvas: 'Buka kanvas',
 	tooltipEnableInteraction: 'Nyalakan interaksi',
 	tooltipDisableInteraction: 'Matikan interaksi',
-	reloadNotesPrompt: {
-		title: 'Muat ulang catatan',
-		desc: 'Pilih “Muat ulang” untuk memuat ulang catatan yang terbuka dan mengembalikan kanvas yang disematkan pada tampilan bawaan (data Anda tetap terjaga).',
-		buttonReload: 'Muat ulang'
+	reloadNotice: {
+		message: 'Disarankan untuk memuat ulang seluruh catatan dan kanvas yang terbuka setelah menonaktifkan atau menghapus plugin Better Embedded Canvas (data Anda data tetap terjaga).',
+		buttonReload: 'Muat ulang',
+		buttonDismiss: 'Abaikan'
 	},
 	settings: {
 		showCanvasName: {
