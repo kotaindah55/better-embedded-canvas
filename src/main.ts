@@ -49,8 +49,10 @@ export class BetterEmbeddedCanvasPlugin extends Plugin {
 		this.addSettingTab(this.settingTab);
 		// Triggered each time a core plugin is enabled/disabled.
 		this.registerEvent(this.app.internalPlugins.on('change', this.handleInternalPluginChange.bind(this)));
+
 		// Replace current creator of embedded canvas at first.
-		this.handleInternalPluginChange(getInternalPlugin(this.app, 'canvas'));
+		if (getInternalPlugin(this.app, 'canvas').enabled)
+			this.replaceCanvasEmbedCreator();
 	}
 
 	public override onunload(): void {
@@ -63,29 +65,33 @@ export class BetterEmbeddedCanvasPlugin extends Plugin {
 		noticeReload(this.app);
 	}
 
-	private handleInternalPluginChange<T extends InternalPluginIDs>(plugin: InternalPlugin<T>): void {
+	private replaceCanvasEmbedCreator(): void {
+		this.builtinCanvasEmbedCreator = replaceEmbedCreator(this.app, 'canvas', (ctx, file, subpath?) => {
+			// Use Advanced Canvas' custom embed.
+			if (this.app.plugins.isEnabled('advanced-canvas') && subpath)
+				return this.builtinCanvasEmbedCreator!(ctx, file, subpath);
+
+			// Avoid deeply, or probably infinite, embedded canvases.
+			//
+			// KNOWN ISSUE:
+			// It only works on canvas embedded within embedded notes. In contrast,
+			// it does not work on canvas embedded within embedded canvas as
+			// `ctx.depth` remains at 1.
+			if (ctx.depth !== undefined && ctx.depth > 2) {
+				return this.builtinCanvasEmbedCreator!(ctx, file, subpath);
+			} else {
+				return CanvasEmbedComponent.create(this, ctx, file, subpath);
+			}
+		});
+	}
+
+	private handleInternalPluginChange<T extends InternalPluginId>(plugin: InternalPlugin<T>): void {
 		if (plugin.instance.id as string != 'canvas') return;
 
 		// `CanvasEmbedComponent` can only be displayed if Canvas plugin is
 		// enabled.
 		if (plugin.enabled) {
-			this.builtinCanvasEmbedCreator = replaceEmbedCreator(this.app, 'canvas', (ctx, file, subpath?) => {
-				// Use Advanced Canvas' custom embed.
-				if (this.app.plugins.isEnabled('advanced-canvas') && subpath)
-					return this.builtinCanvasEmbedCreator!(ctx, file, subpath);
-
-				// Avoid deeply, or probably infinite, embedded canvases.
-				//
-				// KNOWN ISSUE:
-				// It only works on canvas embedded within embedded notes. In contrast,
-				// it does not work on canvas embedded within embedded canvas as
-				// `ctx.depth` remains at 1.
-				if (ctx.depth !== undefined && ctx.depth > 2) {
-					return this.builtinCanvasEmbedCreator!(ctx, file, subpath);
-				} else {
-					return CanvasEmbedComponent.create(this, ctx, file, subpath);
-				}
-			});
+			this.replaceCanvasEmbedCreator();
 		} else {
 			this.builtinCanvasEmbedCreator = null;
 		}
