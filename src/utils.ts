@@ -1,10 +1,9 @@
-import {
-	type App,
-	type CanvasEditor,
-	type EmbedCreator,
-	type InternalPlugin,
-	type InternalPluginId,
-	apiVersion
+import type {
+	App,
+	CanvasEditor,
+	EmbedCreator,
+	InternalPlugin,
+	InternalPluginId
 } from './obsidian';
 
 /**
@@ -51,22 +50,6 @@ export function beingExportedAsPDF(el: HTMLElement): boolean {
  */
 export function toPx(value: number): string {
 	return String(value) + 'px';
-}
-
-/**
- * Get serialized app version.
- */
-export function getAppVersion(): {
-	major: number,
-	minor: number,
-	patch: number
-} {
-	let serials = apiVersion.split('.').map(ver => parseInt(ver));
-	return {
-		major: serials[0] ?? 0,
-		minor: serials[1] ?? 0,
-		patch: serials[2] ?? 0
-	};
 }
 
 /**

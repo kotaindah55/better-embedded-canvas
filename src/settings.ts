@@ -6,11 +6,11 @@ import {
 	debounce,
 	Events,
 	PluginSettingTab,
+	requireApiVersion,
 	Setting
 } from './obsidian';
 import type { BetterEmbeddedCanvasPlugin } from './main';
 import { t } from './i18n';
-import { getAppVersion } from './utils';
 
 export interface BetterEmbeddedCanvasSettings {
 	/**
@@ -55,9 +55,7 @@ export class BetterEmbeddedCanvasPluginSettingTab extends PluginSettingTab {
 
 	public override display(): void {
 		// Do not use legacy setting UI for 1.13.x or higher
-		let appVer = getAppVersion();
-		if (appVer.major >= 1 && appVer.minor >= 13)
-			return;
+		if (!requireApiVersion('1.13.0')) return;
 
 		this.plugin.settingManager.defer(true);
 
