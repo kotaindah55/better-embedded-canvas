@@ -79,18 +79,21 @@ export function patchCanvasEditor(plugin: Plugin): void {
 						store.removePannedCanvas(this);
 						this.setDragging(false);
 					}
-				});
+				}, 0);
 			}
 			
-			// Panning using button that triggers context menu.
+			// Panning using right button.
 			if (evt.button == MouseButton.Right || Platform.isMacOS && evt.button == MouseButton.Middle && evt.ctrlKey) {
 				let startPos = this.posFromEvt(evt);
 
 				store.setPannedCanvas(this);
-				this.setDragging(true);
 				evt.preventDefault();
 
 				let abort = trackPointer(evt, {
+					start: () => {
+						this.setDragging(true);
+					},
+
 					move: evt => {
 						if (store.isPannedCanvas(this)) {
 							let currPos = this.posFromEvt(evt);
@@ -102,15 +105,15 @@ export function patchCanvasEditor(plugin: Plugin): void {
 
 					cleanup: () => {
 						store.removePannedCanvas(this);
-						this.setDragging(false);
-
+						
 						// Do not open context menu once panning is ended.
 						let timer = evt.win.setTimeout(() => {
-							evt.win.removeEventListener('contextmenu', lockEvent, true);
+							this.wrapperEl.removeEventListener('contextmenu', lockEvent, true);
 							evt.win.clearTimeout(timer);
 						}, 0);
-
-						evt.win.addEventListener('contextmenu', lockEvent, true);
+						
+						this.wrapperEl.addEventListener('contextmenu', lockEvent, true);
+						this.setDragging(false);
 					}
 				});
 			}

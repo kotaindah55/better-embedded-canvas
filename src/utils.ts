@@ -3,7 +3,8 @@ import type {
 	CanvasEditor,
 	EmbedCreator,
 	InternalPlugin,
-	InternalPluginId
+	InternalPluginId,
+	Point
 } from './obsidian';
 
 /**
@@ -61,11 +62,19 @@ export function toPx(value: number): string {
  * @param startEvt `pointerdown` event instance to start with.
  * @param handlers A set of handlers, where each handler will be called
  * based on the fired event.
+ * @param startThreshold How many pixels the pointer should move before
+ * triggering the handlers. Default to 5.
  * 
  * @returns Aborter function. Call this to abort the tracking
  * immediately.
  */
 export function trackPointer(startEvt: PointerEvent, handlers: {
+	/**
+	 * Called first before called the rest of the handlers. It will not be
+	 * called until the pointer has moved a distance equal to or greater than
+	 * the `startThreshold`.
+	 */
+	start?(): void;
 	/**
 	 * Called upon `pointermove` event.
 	 */
@@ -91,57 +100,70 @@ export function trackPointer(startEvt: PointerEvent, handlers: {
 	 * `cancel()`, or returned aborter function is called.
 	 */
 	cleanup?(): void;
-}): () => void {
+}, startThreshold = 5): () => void {
 	// Must be primary pointer in case of multi-pointing device.
 	if (!startEvt.isPrimary) return () => {};
+
+	startThreshold = Math.abs(startThreshold);
 
 	let { win } = startEvt,
 		abortController = new AbortController();
 
+	let started = false,
+		startPoint = pointerToPoint(startEvt);
+
 	function dispose(): void {
 		abortController.abort();
-		handlers.cleanup?.();
+		if (started) handlers.cleanup?.();
 	}
 
 	function onPointerMove(evt: PointerEvent): void {
-		if (evt.pointerId == startEvt.pointerId)
+		if (!started) {
+			let currPoint = pointerToPoint(evt);
+			if (measureDistance(startPoint, currPoint) >= startThreshold) {
+				started = true;
+				handlers.start?.();
+			}
+		}
+
+		if (started && evt.pointerId == startEvt.pointerId)
 			handlers.move?.(evt);
 	}
 
 	function onPointerUp(evt: PointerEvent): void {
 		if (evt.button == startEvt.button && evt.pointerId == startEvt.pointerId) {
 			dispose();
-			handlers.end?.(evt);
+			if (started) handlers.end?.(evt);
 		}
 	}
 
 	function onPointerCancel(evt: PointerEvent): void {
-		if (evt.button == startEvt.button && evt.pointerId == startEvt.pointerId) {
+		if (evt.pointerId == startEvt.pointerId) {
 			dispose();
-			handlers.cancel?.(evt);
+			if (started) handlers.cancel?.(evt);
 		}
 	}
 
 	function onDragStartOrDrop(evt: DragEvent): void {
 		dispose();
-		handlers.end?.(evt);
+		if (started) handlers.end?.(evt);
 	}
 
 	function onContextMenu(evt: PointerEvent): void {
 		dispose();
-		handlers.cancel?.(evt);
+		if (started) handlers.cancel?.(evt);
 	}
 
 	function onKeyDown(evt: KeyboardEvent): void {
 		if (evt.key == 'Escape') {
 			dispose();
-			handlers.cancel?.(evt);
+			if (started) handlers.cancel?.(evt);
 		}
-		handlers.keydown?.(evt);
+		if (started) handlers.keydown?.(evt);
 	}
 
 	function onKeyUp(evt: KeyboardEvent): void {
-		handlers.keyup?.(evt);
+		if (started) handlers.keyup?.(evt);
 	}
 
 	win.addEventListener('pointermove', onPointerMove, { signal: abortController.signal });
@@ -189,5 +211,22 @@ export function ensureCanvasRect(canvas: CanvasEditor): void {
 		minY: -height / 2,
 		maxX: width / 2,
 		maxY: width / 2
+	};
+}
+
+/**
+ * Measure distance between two points.
+ */
+function measureDistance(pointA: Point, pointB: Point): number {
+	return Math.hypot(pointA.x - pointB.x, pointA.y - pointB.y);
+}
+
+/**
+ * Extract pointer coordinates as `Point`.
+ */
+function pointerToPoint(evt: MouseEvent): Point {
+	return {
+		x: evt.clientX,
+		y: evt.clientY
 	};
 }
