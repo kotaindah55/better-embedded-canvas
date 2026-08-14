@@ -12,6 +12,13 @@ declare module 'obsidian' {
 		plugins: PluginManager;
 	}
 
+	interface AppConfig extends Record<string, unknown> {
+		/**
+		 * Configured through **Export to PDF** modal.
+		 */
+		pdfExportSettings?: PDFExportSettings;
+	}
+
 	/**
 	 * Bounding box interface.
 	 */
@@ -321,14 +328,7 @@ declare module 'obsidian' {
 		/**
 		 * Get user config/setting by key.
 		 */
-		getConfig<T extends keyof VaultConfig>(key: T): VaultConfig[T];
-	}
-
-	interface VaultConfig extends Record<string, unknown> {
-		/**
-		 * Configured through **Export to PDF** modal.
-		 */
-		pdfExportSettings?: PDFExportSettings;
+		getConfig<T extends keyof AppConfig>(key: T): AppConfig[T];
 	}
 
 	interface ViewTypeMap {
