@@ -1,3 +1,14 @@
+[0.4.0]
+### New feature
+
+- Draggable canvas name. Drag and drop the canvas name to copy-paste the embed, or to open the full canvas in a new tab.
+
+### Bug fix
+
+- Cannot open context menu on canvas when Better Embedded Canvas plugin is enabled. See #3.
+- Pressing space key on embedded canvas causes the embedding note to be scrolled.
+---
+
 [0.3.3]
 ### Minor change
 
