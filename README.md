@@ -6,8 +6,6 @@ Give your embedded canvas better display and interactivity.
 
 ![embedded-canvas.png](./assests/embedded-canvas.png)
 
-> ⤿ Theme: [Adwaita][adwaita-theme] (title bar). Other plugin: [Advanced Canvas][advanced-canvas].
-
 > [!NOTE]
 >
 > Although this plugin already fulfills the need for a full preview of embedded canvas, I still strongly support including this feature as a built-in feature. Visit [here][embedded-canvas-fr] to give your support.
@@ -95,7 +93,6 @@ Thanks to:
 [obsidian-typings]: https://github.com/obsidian-typings/obsidian-typings
 [mnaoumov]: https://github.com/mnaoumov
 [fevol]: https://github.com/Fevol
-[adwaita-theme]: https://community.obsidian.md/themes/adwaita
 [embedded-canvas-fr]: https://forum.obsidian.md/t/show-a-complete-preview-of-the-canvas-including-text-when-a-canvas-is-embedded-in-a-note/51614
 
 [latest-version]: https://img.shields.io/github/manifest-json/v/kotaindah55/better-embedded-canvas?label=version&link=https%3A%2F%2Fgithub.com%2Fkotaindah55%2Fbetter-embedded-canvas%2Freleases
