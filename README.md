@@ -4,7 +4,7 @@
 
 Give your embedded canvas better display and interactivity.
 
-![embedded-canvas-2.png](./assests/embedded-canvas-2.png)
+![embedded-canvas.png](./assests/embedded-canvas.png)
 
 > ⤿ Theme: [Adwaita][adwaita-theme] (title bar). Other plugin: [Advanced Canvas][advanced-canvas].
 
@@ -38,7 +38,7 @@ Give your embedded canvas better display and interactivity.
 
 ## ✍️ Usage
 
-### Embedding canvas into your note
+### Embedding
 
 Use internal link prefixed with an exclamation mark (`!`) to embed a canvas. For example:
 
@@ -46,7 +46,7 @@ Use internal link prefixed with an exclamation mark (`!`) to embed a canvas. For
 ![[My canvas.canvas]]
 ```
 
-You can also adjust the height of the canvas by adding a bar (`|`) and number to the link destination. For example:
+You can adjust the height of the canvas by adding a bar (`|`) and number to the link destination. For example:
 
 ```markdown
 ![[My canvas.canvas|500]]
@@ -56,7 +56,7 @@ You can also adjust the height of the canvas by adding a bar (`|`) and number to
 >
 > The minimum height of an embedded canvas is 300. The height adjusted below 300 will be rounded up to 300.
 
-### Interacting with embedded canvas
+### Interaction
 
 You can interact with an embedded canvas in the same way as you do with a full canvas view. If you prefer no interaction, you can disable it by selecting hand pointer iconed button in the upper-right corner.
 
@@ -64,9 +64,13 @@ You can interact with an embedded canvas in the same way as you do with a full c
 
 To learn how to interact with canvas, refer [here][canvas-help].
 
-### Toggle canvas name
+### Canvas name
 
-By default, the name of embedded canvas is displayed as embed title. You can hide it by going to **Settings** → **Better Embedded Canvas**, then select **Show canvas name** and disable it.
+By default, the name of the embedded canvas is displayed as embed title. You can hide it by going to **Settings** → **Better Embedded Canvas**, then select **Show canvas name** and disable it.
+
+Canvas name is also draggable, meaning that you can copy-paste the embed just by doing drag-and-drop on your note, or open the full canvas in a new tab.
+
+![draggable-canvas-name.gif](./assests/draggable-canvas-name.gif)
 
 ## ⚠️ Limitation
 
@@ -74,7 +78,7 @@ Embedded canvas cannot be edited directly. To do that, open the canvas directly.
 
 ## 🐞 Known issues
 
-- [x] Embedded canvas nodes are not positioned properly in exported PDF.
+- [x] ~~Embedded canvas nodes are not positioned properly in exported PDF.~~
 
 ## ©️ Attribution
 
@@ -95,6 +99,6 @@ Thanks to:
 [embedded-canvas-fr]: https://forum.obsidian.md/t/show-a-complete-preview-of-the-canvas-including-text-when-a-canvas-is-embedded-in-a-note/51614
 
 [latest-version]: https://img.shields.io/github/manifest-json/v/kotaindah55/better-embedded-canvas?label=version&link=https%3A%2F%2Fgithub.com%2Fkotaindah55%2Fbetter-embedded-canvas%2Freleases
-[current-downloads]: https://img.shields.io/github/downloads/kotaindah55/better-embedded-canvas/total?link=https%3A%2F%2Fgithub.com%2Fkotaindah55%2Fbetter-embedded-canvas
+[current-downloads]: https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fgithub.com%2Fobsidianmd%2Fobsidian-releases%2Fraw%2Frefs%2Fheads%2Fmaster%2Fcommunity-plugin-stats.json&query=%24.better-embedded-canvas.downloads&label=downloads&color=green
 [current-stars]: https://img.shields.io/github/stars/kotaindah55/better-embedded-canvas?style=flat&link=https%3A%2F%2Fgithub.com%2Fkotaindah55%2Fbetter-embedded-canvas%2Fstargazers
 [open-issues]: https://img.shields.io/github/issues-search?query=repo%3Akotaindah55%2Fbetter-embedded-canvas%20is%3Aopen&label=open%20issues&color=red&link=https%3A%2F%2Fgithub.com%2Fkotaindah55%2Fbetter-embedded-canvas%2Fissues
