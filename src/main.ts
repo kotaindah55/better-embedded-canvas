@@ -14,7 +14,7 @@ import { noticeReload } from './notice';
 import { hookCanvasEditor } from './hook';
 import {
 	type BetterEmbeddedCanvasSettings,
-	BetterEmbeddedCanvasPluginSettingTab,
+	BetterEmbeddedCanvasSettingTab,
 	SettingManager
 } from './settings';
 
@@ -22,7 +22,7 @@ export class BetterEmbeddedCanvasPlugin extends Plugin {
 	public override readonly settings: Readonly<BetterEmbeddedCanvasSettings>;
 	public readonly settingManager: SettingManager;
 
-	private readonly settingTab: BetterEmbeddedCanvasPluginSettingTab;
+	private readonly settingTab: BetterEmbeddedCanvasSettingTab;
 
 	/**
 	 * Stores builtin `EmbedCreator` of embedded canvas.
@@ -35,7 +35,7 @@ export class BetterEmbeddedCanvasPlugin extends Plugin {
 		this.builtinCanvasEmbedCreator = null;
 		this.settingManager = this.addChild(new SettingManager(this));
 		this.settings = this.settingManager.proxify();
-		this.settingTab = new BetterEmbeddedCanvasPluginSettingTab(this);
+		this.settingTab = new BetterEmbeddedCanvasSettingTab(this);
 
 		// Hook and patch `CanvasEditor` in the beginning of execution order.
 		hookCanvasEditor(app);

@@ -28,7 +28,7 @@ export interface BetterEmbeddedCanvasSettings {
 
 export type BetterEmbeddedCanvasSettingKey = keyof BetterEmbeddedCanvasSettings;
 
-export class BetterEmbeddedCanvasPluginSettingTab extends PluginSettingTab {
+export class BetterEmbeddedCanvasSettingTab extends PluginSettingTab {
 	private readonly plugin: BetterEmbeddedCanvasPlugin;
 
 	public constructor(plugin: BetterEmbeddedCanvasPlugin) {
