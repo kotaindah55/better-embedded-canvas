@@ -43,10 +43,16 @@ export default defineConfig({
 		'no-prototype-builtins': 'off',
 		'no-cond-assign': 'off',
 		'obsidianmd/ui/sentence-case': [
-			'error', { brands: ['Better Embedded Canvas'] }
+			'error', { brands: [
+				'Better Embedded Canvas',
+				'“Space”'
+			]}
 		],
 		'obsidianmd/ui/sentence-case-locale-module': [
-			'error', { brands: ['Better Embedded Canvas'] }
+			'error', { brands: [
+				'Better Embedded Canvas',
+				'“Space”'
+			]}
 		],
 		'@typescript-eslint/no-empty-function': 'off',
 		'@typescript-eslint/await-thenable': 'off',
