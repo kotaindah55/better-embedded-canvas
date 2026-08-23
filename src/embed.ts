@@ -113,6 +113,7 @@ export class CanvasEmbedComponent extends Component implements EmbedComponent, C
 
 	public override onload(): void {
 		this.canvas.load();
+		this.attachDragHandler();
 		// Triggered each time a file has been modified.
 		this.registerEvent(this.app.vault.on('modify', this.handleModify.bind(this)));
 		// Triggered each time settings have been changed.
@@ -254,6 +255,22 @@ export class CanvasEmbedComponent extends Component implements EmbedComponent, C
 		this.contentEl.setCssStyles({ height: height && height > MIN_CANVAS_HEIGHT
 			? toPx(height)
 			: toPx(MIN_CANVAS_HEIGHT)
+		});
+	}
+
+	/**
+	 * Attach drag handler to the embed header, making it as draggable
+	 * link/file.
+	 */
+	private attachDragHandler(): void {
+		this.app.dragManager.handleDrag(this.headerEl, evt => {
+			let linktext = this.ctx.linktext,
+				sourcePath = this.ctx.sourcePath ?? '',
+				source = this.becPlugin.manifest.id;
+
+			return linktext
+				? this.app.dragManager.dragLink(evt, linktext, sourcePath, undefined, source)
+				: null;
 		});
 	}
 

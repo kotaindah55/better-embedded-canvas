@@ -90,6 +90,7 @@ export function patchCanvasEditor(plugin: Plugin): void {
 				evt.preventDefault();
 
 				let abort = trackPointer(evt, {
+					// Do not pan until the pointer reaches the threshold.
 					start: () => {
 						this.setDragging(true);
 					},

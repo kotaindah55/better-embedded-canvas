@@ -6,7 +6,25 @@ declare global {
 }
 
 declare module 'obsidian' {
+	interface AbstractDraggable<T extends string> {
+		/**
+		 * Icon to show in drag image.
+		 */
+		icon?: IconName;
+		/**
+		 * Usually and optionally refers to where dragging starts, or to who
+		 * starts it.
+		 */
+		source?: string;
+		/**
+		 * Title to show in drag image.
+		 */
+		title: string;
+		type: T;
+	}
+
 	interface App {
+		dragManager: DragManager;
 		embedRegistry: EmbedRegistry;
 		internalPlugins: InternalPluginManager;
 		plugins: PluginManager;
@@ -180,6 +198,69 @@ declare module 'obsidian' {
 		getViewData(): string;
 		clear(): void;
 		getViewType(): string;
+	}
+
+	/**
+	 * Contains information of dragged object.
+	 */
+	type Draggable = DraggableLink;
+
+	interface DraggableLink extends AbstractDraggable<'link'> {
+		/**
+		 * File that the link refers to.
+		 */
+		file?: TFile;
+		/**
+		 * An internal link without the leading `[[` and trailing `]]`.
+		 */
+		linktext?: string;
+		/**
+		 * The path to the file which the link is dragged from. You can use
+		 * empty string if there is no such file.
+		 */
+		sourcePath: string;
+	}
+
+	/**
+	 * Attaches drag and drop functionality and watches currently active
+	 * drag and drop operation.
+	 * 
+	 * @typeonly
+	 */
+	class DragManager {
+		/**
+		 * Handle internal link dragging and create {@link DraggableLink} object.
+		 * 
+		 * @param evt Drag event to handle.
+		 * @param linkText See {@link DraggableLink.sourcePath}.
+		 * @param sourcePath See {@link DraggableLink.sourcePath}.
+		 * @param title Custom title for the {@link Draggable} object. Will use
+		 * file name that the link refers to if it is not specified or empty
+		 * string.
+		 * @param source See {@link AbstractDraggable.source}.
+		 */
+		dragLink(evt: DragEvent, linkText: string, sourcePath: string, title?: string, source?: string): DraggableLink;
+		/**
+		 * Attach drag handler to an element. Simply put, make the element as a
+		 * drag target.
+		 * 
+		 * @param el Drag target element.
+		 * @param dragHandler Return it `null` to not display the drag image.
+		 * 
+		 * @example
+		 * ```ts
+		 * function attachDragHandler(el: HTMLElement, file: TFile): void {
+		 *     this.app.dragManager.handleDrag(el, (evt: DragEvent) => {
+		 *         if (el.hasClass('is-draggable')) {
+		 *             return this.app.dragManager.dragFile(evt, file);
+		 *         } else {
+		 *             return null;
+		 *         }
+		 *     });
+		 * }
+		 * ```
+		 */
+		handleDrag(el: HTMLElement, dragHandler: (event: DragEvent) => Draggable | null): void;
 	}
 
 	interface EmbedComponent extends Component {
