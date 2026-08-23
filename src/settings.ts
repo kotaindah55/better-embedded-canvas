@@ -7,7 +7,8 @@ import {
 	Events,
 	PluginSettingTab,
 	requireApiVersion,
-	Setting
+	Setting,
+	SettingGroup
 } from './obsidian';
 import type { BetterEmbeddedCanvasPlugin } from './main';
 import { t } from './i18n';
@@ -17,6 +18,12 @@ export interface BetterEmbeddedCanvasSettings {
 	 * Show canvas name as embed title.
 	 */
 	showCanvasName: boolean;
+	/**
+	 * Press `Space` key and drag the embedded canvas to move it. Canvas that
+	 * is embedded inside another canvas, whether directly or via an embedded
+	 * note, cannot use this method.
+	 */
+	spaceKeyToPan: boolean;
 }
 
 export type BetterEmbeddedCanvasSettingKey = keyof BetterEmbeddedCanvasSettings;
@@ -49,6 +56,14 @@ export class BetterEmbeddedCanvasPluginSettingTab extends PluginSettingTab {
 					type: 'toggle',
 					key: 'showCanvasName'
 				}
+			},
+			{
+				name: t('settings.spaceKeyToPan.name'),
+				desc: t('settings.spaceKeyToPan.desc'),
+				control: {
+					type: 'toggle',
+					key: 'spaceKeyToPan'
+				}
 			}
 		];
 	}
@@ -59,14 +74,46 @@ export class BetterEmbeddedCanvasPluginSettingTab extends PluginSettingTab {
 
 		this.plugin.settingManager.defer(true);
 
-		// Show canvas name
-		new Setting(this.containerEl)
-			.setName(t('settings.showCanvasName.name'))
-			.setDesc(t('settings.showCanvasName.desc'))
-			.addToggle(comp => comp
-				.setValue(this.getControlValue('showCanvasName'))
-				.onChange(this.setControlValue.bind(this, 'showCanvasName'))
-			);
+		if (requireApiVersion('1.11.0')) {
+			new SettingGroup(this.containerEl)
+				// Show canvas name
+				.addSetting(row => void row
+					.setName(t('settings.showCanvasName.name'))
+					.setDesc(t('settings.showCanvasName.desc'))
+					.addToggle(comp => comp
+						.setValue(this.getControlValue('showCanvasName'))
+						.onChange(this.setControlValue.bind(this, 'showCanvasName'))
+					)
+				)
+				// Press “Space” key to pan
+				.addSetting(row => void row
+					.setName(t('settings.spaceKeyToPan.name'))
+					.setDesc(t('settings.spaceKeyToPan.desc'))
+					.addToggle(comp => comp
+						.setValue(this.getControlValue('spaceKeyToPan'))
+						.onChange(this.setControlValue.bind(this, 'spaceKeyToPan'))
+					)
+				);
+		} else {
+			// Show canvas name
+			new Setting(this.containerEl)
+				.setName(t('settings.showCanvasName.name'))
+				.setDesc(t('settings.showCanvasName.desc'))
+				.addToggle(comp => comp
+					.setValue(this.getControlValue('showCanvasName'))
+					.onChange(this.setControlValue.bind(this, 'showCanvasName'))
+				);
+
+			// Press “Space” key to pan
+			new Setting(this.containerEl)
+				.setName(t('settings.spaceKeyToPan.name'))
+				.setDesc(t('settings.spaceKeyToPan.desc'))
+				.addToggle(comp => comp
+					.setValue(this.getControlValue('spaceKeyToPan'))
+					.onChange(this.setControlValue.bind(this, 'spaceKeyToPan'))
+				);
+		}
+		
 	}
 
 	public override hide(): void {
@@ -209,6 +256,7 @@ export class SettingManager extends Component {
 
 function getDefaultSettings(): BetterEmbeddedCanvasSettings {
 	return {
-		showCanvasName: true
+		showCanvasName: true,
+		spaceKeyToPan: true
 	};
 }

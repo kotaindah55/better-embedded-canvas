@@ -62,6 +62,7 @@ declare module 'obsidian' {
 		 * Id of currently queued frame request. 0 if no queued frame request.
 		 */
 		frame: number;
+		isHoldingSpace: boolean;
 		/**
 		 * Indicates that user is not being able to interact with the canvas,
 		 * such as clicking, scrolling, or touching.

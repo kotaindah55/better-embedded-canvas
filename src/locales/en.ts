@@ -11,6 +11,10 @@ export default {
 		showCanvasName: {
 			name: 'Show canvas name',
 			desc: 'Show canvas name as embed title.'
+		},
+		spaceKeyToPan: {
+			name: 'Press “Space” key to pan',
+			desc: 'Press “Space” key and drag the embedded canvas to move it. Canvas that is embedded inside another canvas, whether directly or via an embedded note, cannot use this method.'
 		}
 	}
 }

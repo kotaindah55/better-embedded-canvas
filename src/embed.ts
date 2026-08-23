@@ -45,6 +45,11 @@ export class CanvasEmbedComponent extends Component implements EmbedComponent, C
 	public readonly ctx: EmbedContext;
 	public readonly subpath?: string | undefined;
 
+	/**
+	 * Indicates that the pointer is hovering over the embed.
+	 */
+	public isPointerOver: boolean;
+
 	private readonly becPlugin: BetterEmbeddedCanvasPlugin;
 	private readonly containerEl: HTMLElement;
 	/**
@@ -69,6 +74,7 @@ export class CanvasEmbedComponent extends Component implements EmbedComponent, C
 		this.ctx = ctx;
 		this.file = file;
 		this.subpath = subpath;
+		this.isPointerOver = false;
 		
 		this.containerEl = ctx.containerEl;
 		this.containerEl.addClass('canvas-embed', 'better-canvas-embed');
@@ -118,6 +124,12 @@ export class CanvasEmbedComponent extends Component implements EmbedComponent, C
 		this.registerEvent(this.app.vault.on('modify', this.handleModify.bind(this)));
 		// Triggered each time settings have been changed.
 		this.registerEvent(this.becPlugin.settingManager.on('settings-changed', this.handleSettingsChange.bind(this)));
+		// Triggered when the pointer enters the embed.
+		this.registerDomEvent(this.canvas.wrapperEl, 'pointerover', this.handlePointerEnter.bind(this));
+		// Triggered when the pointer leaves the embed.
+		this.registerDomEvent(this.canvas.wrapperEl, 'pointerleave', this.handlePointerLeave.bind(this));
+		// Triggered when the pointer leaves the embed.
+		this.registerDomEvent(this.contentEl.win, 'keydown', this.handleGlobalKeydown.bind(this));
 		// Store this embed.
 		store.storeCanvasEmbed(this);
 
@@ -293,6 +305,20 @@ export class CanvasEmbedComponent extends Component implements EmbedComponent, C
 			let show = this.becPlugin.settings.showCanvasName;
 			this.headerEl.toggle(show);
 		}
+	}
+
+	private handlePointerEnter(): void {
+		this.isPointerOver = true;
+	}
+
+	private handlePointerLeave(): void {
+		this.isPointerOver = false;
+	}
+
+	private handleGlobalKeydown(evt: KeyboardEvent): void {
+		if (!this.becPlugin.settings.spaceKeyToPan || !this.isPointerOver) return;
+		// Prevent scrolling when using space key to pan embedded canvas.
+		if (evt.key == ' ' && this.canvas.isHoldingSpace) evt.preventDefault();
 	}
 
 	/**

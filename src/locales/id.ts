@@ -11,6 +11,10 @@ export default {
 		showCanvasName: {
 			name: 'Tampilkan nama kanvas',
 			desc: 'Tampilkan nama kanvas sebagai judul sematan.'
+		},
+		spaceKeyToPan: {
+			name: 'Tekan “Spasi” untuk menggeser',
+			desc: 'Tekan “Spasi” dan seret kanvas yang disematkan untuk menggesernya. Kanvas yang disematkan di dalam kanvas lain, baik secara langsung maupun melalui catatan yang disematkan, tidak dapat menggunakan metode ini.'
 		}
 	}
 }
