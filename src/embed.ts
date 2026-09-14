@@ -140,7 +140,7 @@ export class CanvasEmbedComponent extends Component implements EmbedComponent, C
 		// size and margin. Thus, the content inside is aligned properly.
 		//
 		// That way, as a note is being exported, a new hidden `Window` is
-		// created to be used as prerendering container. However, the size of the
+		// created to be used as pre-rendering container. However, the size of the
 		// `Window` does not match specified page size.
 		if (beingExportedAsPDF(this.containerEl) && !insideCanvasNode(this.containerEl)) {
 			// Get last configured settings.
@@ -226,12 +226,12 @@ export class CanvasEmbedComponent extends Component implements EmbedComponent, C
 			this.canvas.requestFrame();
 		}
 
-		// Let Advancaed Canvas plugin run on top of this embed.
+		// Let Advanced Canvas plugin run on top of this embed.
 		this.app.workspace.trigger('advanced-canvas:canvas-changed', this.canvas);
 	}
 
 	/**
-	 * Intialize canvas rendering.
+	 * Initialize canvas rendering.
 	 */
 	private initRender(): void {
 		this.updateHeight();
@@ -276,12 +276,12 @@ export class CanvasEmbedComponent extends Component implements EmbedComponent, C
 	 */
 	private attachDragHandler(): void {
 		this.app.dragManager.handleDrag(this.headerEl, evt => {
-			let linktext = this.ctx.linktext,
+			let linkText = this.ctx.linktext,
 				sourcePath = this.ctx.sourcePath ?? '',
 				source = this.becPlugin.manifest.id;
 
-			return linktext
-				? this.app.dragManager.dragLink(evt, linktext, sourcePath, undefined, source)
+			return linkText
+				? this.app.dragManager.dragLink(evt, linkText, sourcePath, undefined, source)
 				: null;
 		});
 	}
