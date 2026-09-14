@@ -28,5 +28,9 @@ export function getCanvasRenderer(owner: CanvasEditorOwner): CanvasEditor {
 	// Prevent canvas from being drop destination.
 	renderer.wrapperEl.addEventListener('drop', evt => evt.preventDefault(), true);
 
+	// Force canvas direction to ltr, due to quirk behavior: nodes shift
+	// slightly to the right inaccurately in rtl direction (bug?).
+	renderer.canvasEl.dir = 'ltr';
+
 	return renderer;
 }
