@@ -30,10 +30,10 @@
 		"i18next": "^26.2.0",
 		"obsidian": "~1.13.1",
 		"patch-package": "^8.0.1",
-		"sass": "~1.100.0",
+		"sass": "~1.101.7",
 		"tsx": "^4.20.3",
 		"typescript": "^6.0.3",
-		"typescript-eslint": "~8.59.4"
+		"typescript-eslint": "~8.65.0"
 	},
 	"dependencies": {
 		"monkey-around": "^3.0.0"
