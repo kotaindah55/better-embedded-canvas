@@ -33,5 +33,8 @@ export function hookCanvasEditor(app: App): void {
 	CanvasEditor = canvasView.canvas.constructor as typeof CanvasEditor;
 }
 
+export let CanvasView: typeof _CanvasView;
+export type CanvasView = _CanvasView;
+
 export let CanvasEditor: typeof _CanvasEditor;
 export type CanvasEditor = _CanvasEditor;

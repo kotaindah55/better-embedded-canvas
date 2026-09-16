@@ -58,8 +58,34 @@ export class BetterEmbeddedCanvasPlugin extends Plugin {
 		this.registerEvent(this.app.internalPlugins.on('change', this.handleInternalPluginChange.bind(this)));
 
 		// Replace current creator of embedded canvas at first.
-		if (getInternalPlugin(this.app, 'canvas').enabled)
-			this.replaceCanvasEmbedCreator();
+		if (getInternalPlugin(this.app, 'canvas').enabled) {
+			// This plugin's embed must override Advanced Canvas' embed, not
+			// otherwise.
+			if (this.app.plugins.isEnabled(ADVANCED_CANVAS_PLUGIN_ID) || this.app.workspace.layoutReady) {
+				this.replaceCanvasEmbedCreator();
+			} else {
+				// Replacement must be done before any canvas embed can be rendered.
+				// Vault loads files after all enabled plugins are loaded.
+				let ref = this.app.vault.on('create', () => {
+					this.replaceCanvasEmbedCreator();
+					this.app.vault.offref(ref);
+				});
+				this.app.workspace.onLayoutReady(() => {
+					if (!this.builtinCanvasEmbedCreator) this.replaceCanvasEmbedCreator();
+					this.app.vault.offref(ref);
+				});
+			}
+		}
+		
+		else {
+			// Prompt user to re-enable Canvas plugin and restart the app.
+			this.app.workspace.onLayoutReady(noticeCanvasIsDisabled);
+		}
+
+		this.app.workspace.onLayoutReady(() => {
+			this.isAdvancedCanvasEnabled = this.app.plugins.isEnabled(ADVANCED_CANVAS_PLUGIN_ID);
+			this.registerEvent(this.app.plugins.on('changed', this.handleExternalPluginChange.bind(this)));
+		});
 	}
 
 	public override onunload(): void {
