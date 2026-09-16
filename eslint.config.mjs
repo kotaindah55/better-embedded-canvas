@@ -45,13 +45,15 @@ export default defineConfig({
 		'obsidianmd/ui/sentence-case': [
 			'error', { brands: [
 				'Better Embedded Canvas',
-				'“Space”'
+				'“Space”',
+				'“Settings → Core plugins”'
 			]}
 		],
 		'obsidianmd/ui/sentence-case-locale-module': [
 			'error', { brands: [
 				'Better Embedded Canvas',
-				'“Space”'
+				'“Space”',
+				'“Settings → Core plugins”'
 			]}
 		],
 		'@typescript-eslint/no-empty-function': 'off',
@@ -60,11 +62,6 @@ export default defineConfig({
 		'@typescript-eslint/no-unsafe-assignment': 'off',
 		'@typescript-eslint/no-unsafe-member-access': 'off',
 		'@typescript-eslint/no-unsafe-call': 'off',
-		'@typescript-eslint/no-misused-promises': 'off',
-		'@typescript-eslint/no-unsafe-enum-comparison': 'off',
-		'@typescript-eslint/no-explicit-any': [
-			'error', { ignoreRestArgs: true }
-		],
 		'@typescript-eslint/no-unused-vars': [
 			'error', { args: 'none' },
 		],
