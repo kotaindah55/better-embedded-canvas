@@ -1,4 +1,5 @@
-import { open } from 'fs/promises';
+import { open, readFile } from 'fs/promises';
+import { compareVersions } from 'compare-versions';
 
 interface ChangelogDesc {
 	version: string;
@@ -9,7 +10,7 @@ const VERSION_VALIDATOR = /^\[(\d+\.\d+\.\d+)\]$/;
 const END_OF_CHANGELOG = /^---$/;
 
 export async function getLastChangelog(): Promise<ChangelogDesc> {
-	let changelogFile = await open('CHANGELOGS.txt', 'r', ),
+	let changelogFile = await open('CHANGELOGS.txt', 'r'),
 		changelog = '',
 		version = '',
 		lineIndex = 0;
@@ -35,4 +36,15 @@ export async function getLastChangelog(): Promise<ChangelogDesc> {
 	}
 
 	return { changelog, version };
+}
+
+export async function isNewestVersion(version: string): Promise<boolean> {
+	if (!VERSION_VALIDATOR.test(version)) return false;
+
+	let rawManifest = (await readFile('manifest.json')).toString(),
+		manifest = JSON.parse(rawManifest) as { version: string };
+
+	if (!manifest?.version || !VERSION_VALIDATOR.test(manifest.version)) return false;
+
+	return compareVersions(version, manifest.version) > 0;
 }

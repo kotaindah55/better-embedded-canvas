@@ -1,20 +1,24 @@
 import { readFileSync, writeFileSync } from 'fs';
-import { getLastChangelog } from './utils.mjs';
+import { getLastChangelog, isNewestVersion } from './utils.mjs';
 import { execSync } from 'child_process';
 
-export type ManifestConfig = {
+export interface ManifestConfig {
 	version: string;
 	minAppVersion: string;
 }
 
-export type PackageConfig = {
+export interface PackageConfig {
 	version: string;
 }
 
 export type VersionRecord = Record<string, string>;
 
 let { version: targetVersion } = await getLastChangelog(),
-	message = 'chore: bump version to ' + targetVersion,
+	validVersion = await isNewestVersion(targetVersion);
+
+if (!validVersion) throw Error('Current version is less than previous version, or is not valid');
+
+let message = 'chore: bump version to ' + targetVersion,
 	tobeCommitted = 'manifest.json package.json versions.json CHANGELOGS.txt';
 
 // read minAppVersion from manifest.json and bump version to target version
