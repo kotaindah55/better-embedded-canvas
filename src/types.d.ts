@@ -64,6 +64,10 @@ declare module 'obsidian' {
 		frame: number;
 		isHoldingSpace: boolean;
 		/**
+		 * Canvas nodes mapped onto their id.
+		 */
+		nodes: Map<string, CanvasNode>;
+		/**
 		 * Indicates that user is not being able to interact with the canvas,
 		 * such as clicking, scrolling, or touching.
 		 * 
@@ -133,6 +137,10 @@ declare module 'obsidian' {
 		 */
 		requestFrame(timestamp?: number): void;
 		/**
+		 * Select the node only.
+		 */
+		selectOnly(node: CanvasNode): void;
+		/**
 		 * Serialize `CanvasData` into nodes and edges.
 		 */
 		setData(data: CanvasData): void;
@@ -156,6 +164,11 @@ declare module 'obsidian' {
 		 * to add, change, or remove selection.
 		 */
 		updateSelection(selectCb: () => void): void;
+		/**
+		 * Zoom canvas to the given bounding box.
+		 */
+		zoomToBbox(bBox: CanvasBBox): void;
+		zoomToSelection(): void;
 	}
 
 	interface CanvasEditorOwner {
@@ -172,6 +185,15 @@ declare module 'obsidian' {
 		plugin: CanvasPluginInstance;
 		requestSave(): void;
 		saveLocalData(): void;
+	}
+
+	/** @typeonly */
+	abstract class CanvasNode {
+		id: string;
+		/**
+		 * Get bounding box of this node.
+		 */
+		getBBox(): CanvasBBox;
 	}
 
 	type CanvasPlugin = InternalPlugin<'canvas'>;
@@ -400,8 +422,9 @@ declare module 'obsidian' {
 	 * 
 	 * @typeonly
 	 */
-	class PluginManager {
+	class PluginManager extends Events {
 		isEnabled(id: string): boolean;
+		on(name: 'changed', callback: () => unknown, ctx?: unknown): EventRef;
 	}
 
 	type TypedViewCreator<T extends View> = (leaf: WorkspaceLeaf) => T;

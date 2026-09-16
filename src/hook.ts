@@ -1,4 +1,12 @@
-import type { App, CanvasEditor as _CanvasEditor, WorkspaceLeaf } from './obsidian';
+import type {
+	App,
+	CanvasEditor as _CanvasEditor,
+	CanvasView as _CanvasView,
+	InternalLinkEditorSuggest,
+	InternalLinkSuggestManager,
+	WorkspaceLeaf
+} from './obsidian';
+import { hasOwnAll } from './utils';
 
 /**
  * Create mock `WorkspaceLeaf` instance.
@@ -15,13 +23,14 @@ function mockLeaf(app: App): WorkspaceLeaf {
 }
 
 /**
- * Hook and store `CanvasEditor` constructor.
+ * Hook and store `CanvasView` and `CanvasEditor` constructors.
  */
 export function hookCanvasEditor(app: App): void {
 	let canvasViewCreator = app.internalPlugins.getPluginById('canvas').views.canvas,
 		canvasView = canvasViewCreator(mockLeaf(app));
 
-	CanvasEditor = canvasView.canvas.constructor as typeof _CanvasEditor;
+	CanvasView = canvasView.constructor as typeof CanvasView;
+	CanvasEditor = canvasView.canvas.constructor as typeof CanvasEditor;
 }
 
 export let CanvasEditor: typeof _CanvasEditor;

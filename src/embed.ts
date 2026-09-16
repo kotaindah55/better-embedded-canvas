@@ -10,6 +10,7 @@ import {
 	type TFile,
 	Component,
 	Keymap,
+	MarkdownRenderer,
 	setIcon,
 	setTooltip
 } from './obsidian';
@@ -18,6 +19,7 @@ import { beingExportedAsPDF, getInternalPlugin, toPx } from './utils';
 import { DEFAULT_PAGE_MARGIN, PageSizes } from './page-sizes';
 import type { BetterEmbeddedCanvasPlugin } from './main';
 import type { BetterEmbeddedCanvasSettingKey } from './settings';
+import { CanvasView } from './hook';
 import { t } from './i18n';
 import * as store from './store';
 
@@ -25,6 +27,11 @@ import * as store from './store';
  * Minimum canvas height in px.
  */
 const MIN_CANVAS_HEIGHT = 300;
+
+const enum CanvasEmbedMode {
+	Canvas,
+	Markdown
+}
 
 /**
  * Indicate that the element is inside canvas node.
@@ -57,6 +64,8 @@ export class CanvasEmbedComponent extends Component implements EmbedComponent, C
 	 */
 	private readonly headerEl: HTMLElement;
 	private readonly headerInnerEl: HTMLElement;
+	private readonly markdownEl: HTMLElement;
+	private readonly markdownPreviewEl: HTMLElement;
 	private readonly mainControlsEl: HTMLElement;
 	private readonly zoomControlsEl: HTMLElement;
 	private readonly openCanvasBtnEl: HTMLElement;
@@ -67,6 +76,23 @@ export class CanvasEmbedComponent extends Component implements EmbedComponent, C
 	 */
 	private readonly mutationObserver: MutationObserver;
 
+	private mode: CanvasEmbedMode;
+	/**
+	 * Controls lifecycle of the markdown-rendered node content.
+	 */
+	private child?: Component;
+
+	/**
+	 * Specific canvas node id that will be rendered. `null` means the whole
+	 * canvas is to be rendered instead.
+	 */
+	private get nodeId(): string | null {
+		if (!this.subpath) return null;
+		return this.subpath.startsWith('#')
+			? this.subpath.slice(1)
+			: this.subpath;
+	}
+
 	private constructor(becPlugin: BetterEmbeddedCanvasPlugin, ctx: EmbedContext, file: TFile, subpath?: string) {
 		super();
 		this.app = ctx.app;
@@ -76,6 +102,7 @@ export class CanvasEmbedComponent extends Component implements EmbedComponent, C
 		this.file = file;
 		this.subpath = subpath;
 		this.isPointerOver = false;
+		this.mode = CanvasEmbedMode.Canvas;
 		
 		this.containerEl = ctx.containerEl;
 		this.containerEl.addClass('canvas-embed', 'better-canvas-embed');
@@ -89,6 +116,8 @@ export class CanvasEmbedComponent extends Component implements EmbedComponent, C
 		});
 		this.headerInnerEl = this.headerEl.createSpan('embed-title-inner');
 		this.contentEl = this.containerEl.createDiv('canvas-content');
+		this.markdownEl = createDiv('markdown-embed-content');
+		this.markdownPreviewEl = this.markdownEl.createDiv('markdown-preview-view markdown-rendered');
 
 		this.canvas = getCanvasRenderer(this);
 		this.zoomControlsEl = this.canvas.canvasControlsEl.firstElementChild as HTMLElement;
@@ -173,6 +202,8 @@ export class CanvasEmbedComponent extends Component implements EmbedComponent, C
 		this.resizeObserver.disconnect();
 		this.mutationObserver.disconnect();
 		this.canvas.unload();
+
+		delete this.child;
 		store.discardCanvasEmbed(this);
 	}
 
@@ -203,6 +234,11 @@ export class CanvasEmbedComponent extends Component implements EmbedComponent, C
 		await this.setData(data, true);
 	}
 
+	public async reload(): Promise<void> {
+		let data = await this.app.vault.cachedRead(this.file);
+		await this.setData(data, false);
+	}
+
 	/**
 	 * Set unserialized JSON data as `CanvasData`.
 	 * 
@@ -210,11 +246,84 @@ export class CanvasEmbedComponent extends Component implements EmbedComponent, C
 	 * @param firstLoad Set it to true if this is first data loading.
 	 */
 	private async setData(data: string, firstLoad: boolean): Promise<void> {
-		try {
+		// Discard previous markdown-rendered node content if any.
+		if (this.child) {
+			this.removeChild(this.child);
+			delete this.child;
+		}
+
+		let nodeId = this.nodeId,
+			subHeader = '',
+			mode = CanvasEmbedMode.Canvas,
+			markdown = '';
+
+		// Render single node / group.
+		if (nodeId !== null) {
+			let cache = this.becPlugin.canvasCache.getCache(this.file, data),
+				serialized: CanvasData = { nodes: [], edges: [] };
+
+			if (cache) {
+				let target = cache.nodes[nodeId];
+				if (target) {
+					if (target.type == 'group') {
+						let grouped = cache.groups[target.id];
+						if (!this.becPlugin.settings.embedGroupContentOnly)
+							serialized.nodes.push(target);
+						if (grouped) {
+							serialized.nodes.push(...Object.values(grouped.nodes));
+							serialized.edges = cache.edges.filter(edge => (
+								edge.fromNode in grouped.nodes &&
+								edge.toNode in grouped.nodes
+							));
+						}
+					}
+					
+					else {
+						if (!this.becPlugin.settings.embedNodeContentOnly) {
+							serialized.nodes.push(target);
+						} else {
+							// Rendered as markdown embed.
+							mode = CanvasEmbedMode.Markdown;
+							if (target.type == 'text') {
+								markdown = target.text;
+							} else if (target.type == 'file') {
+								// Only display clickable link for file node. User should embed file
+								// directly instead of using canvas as a middleman.
+								markdown = `[[${target.file}]]`;
+							} else {
+								markdown = target.url;
+							}
+						}
+					}
+
+					subHeader = target.id;
+				}
+				Object.assign(serialized, cache.data);
+			}
+
+			this.canvas.setData(serialized);
+		}
+
+		else try {
 			let serialized = JSON.parse(data) as CanvasData;
 			this.canvas.setData(serialized);
 		} catch (err) {
 			console.error(err);
+		}
+
+		// Update subtitle based on current subpath.
+		if (subHeader != this.headerEl.getAttr('data-sub-header')) {
+			this.headerEl.setAttr('data-sub-header', subHeader);
+		}
+		
+		this.setMode(mode);
+		this.updateHeader();
+
+		if (this.mode == CanvasEmbedMode.Markdown) {
+			this.child = this.addChild(new Component());
+			// Reset rendered markdown on child unload.
+			this.child.register(() => this.markdownPreviewEl.empty());
+			await MarkdownRenderer.render(this.app, markdown, this.markdownPreviewEl, this.ctx.sourcePath ?? '', this.child);
 		}
 
 		if (firstLoad) {
@@ -252,8 +361,22 @@ export class CanvasEmbedComponent extends Component implements EmbedComponent, C
 	/**
 	 * Open canvas individually at preferred tab.
 	 */
-	private openOnClick(evt: PointerEvent): void {
+	private async openOnClick(evt: PointerEvent): Promise<void> {
 		let leaf = this.app.workspace.getLeaf(Keymap.isModEvent(evt));
+		await leaf.openFile(this.file);
+
+		// Select the node and zoom canvas to it.
+		if (this.nodeId && leaf.view instanceof CanvasView) {
+			let canvas = leaf.view.canvas,
+				node = canvas.nodes.get(this.nodeId);
+
+			if (node) {
+				canvas.selectOnly(node);
+				canvas.zoomToSelection();
+			}
+		}
+	}
+
 	/**
 	 * Update embed title based on file name and link alias.
 	 */
@@ -284,6 +407,29 @@ export class CanvasEmbedComponent extends Component implements EmbedComponent, C
 			? toPx(height)
 			: toPx(MIN_CANVAS_HEIGHT)
 		});
+	}
+
+	/**
+	 * Set current embed mode.
+	 */
+	private setMode(mode: CanvasEmbedMode): void {
+		if (this.mode === mode) return;
+
+		this.mode = mode;
+
+		if (mode === CanvasEmbedMode.Canvas) {
+			this.markdownEl.detach();
+			this.containerEl.append(this.contentEl);
+
+			this.containerEl.removeClass('markdown-embed');
+			this.headerEl.removeClass('markdown-embed-title');
+		} else {
+			this.contentEl.detach();
+			this.containerEl.append(this.markdownEl);
+
+			this.containerEl.addClass('markdown-embed');
+			this.headerEl.addClass('markdown-embed-title');
+		}
 	}
 
 	/**
@@ -325,6 +471,9 @@ export class CanvasEmbedComponent extends Component implements EmbedComponent, C
 		if (changed.has('showCanvasName')) {
 			let show = this.becPlugin.settings.showCanvasName;
 			this.headerEl.toggle(show);
+		}
+		if (changed.has('embedGroupContentOnly') || changed.has('embedNodeContentOnly')) {
+			void this.reload();
 		}
 	}
 

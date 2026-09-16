@@ -24,6 +24,15 @@ export interface BetterEmbeddedCanvasSettings {
 	 * note, cannot use this method.
 	 */
 	spaceKeyToPan: boolean;
+	/**
+	 * Embed only content of a canvas node instead of preserving the whole
+	 * canvas interface. This does not apply to group node.
+	 */
+	embedNodeContentOnly: boolean;
+	/**
+	 * Omit group node while only show its content.
+	 */
+	embedGroupContentOnly: boolean;
 }
 
 export type BetterEmbeddedCanvasSettingKey = keyof BetterEmbeddedCanvasSettings;
@@ -50,20 +59,47 @@ export class BetterEmbeddedCanvasSettingTab extends PluginSettingTab {
 	public override getSettingDefinitions(): SettingDefinitionItem<BetterEmbeddedCanvasSettingKey>[] {
 		return [
 			{
-				name: t('settings.showCanvasName.name'),
-				desc: t('settings.showCanvasName.desc'),
-				control: {
-					type: 'toggle',
-					key: 'showCanvasName'
-				}
+				type: 'group',
+				items: [
+					{
+						name: t('setting.showCanvasName.name'),
+						desc: t('setting.showCanvasName.desc'),
+						control: {
+							type: 'toggle',
+							key: 'showCanvasName'
+						}
+					},
+					{
+						name: t('setting.spaceKeyToPan.name'),
+						desc: t('setting.spaceKeyToPan.desc'),
+						control: {
+							type: 'toggle',
+							key: 'spaceKeyToPan'
+						}
+					}
+				]
 			},
 			{
-				name: t('settings.spaceKeyToPan.name'),
-				desc: t('settings.spaceKeyToPan.desc'),
-				control: {
-					type: 'toggle',
-					key: 'spaceKeyToPan'
-				}
+				type: 'group',
+				heading: t('settingHeading.nodeEmbed'),
+				items: [
+					{
+						name: t('setting.embedNodeContentOnly.name'),
+						desc: t('setting.embedNodeContentOnly.desc'),
+						control: {
+							type: 'toggle',
+							key: 'embedNodeContentOnly'
+						}
+					},
+					{
+						name: t('setting.embedGroupContentOnly.name'),
+						desc: t('setting.embedGroupContentOnly.desc'),
+						control: {
+							type: 'toggle',
+							key: 'embedGroupContentOnly'
+						}
+					}
+				]
 			}
 		];
 	}
@@ -78,8 +114,8 @@ export class BetterEmbeddedCanvasSettingTab extends PluginSettingTab {
 			new SettingGroup(this.containerEl)
 				// Show canvas name
 				.addSetting(row => void row
-					.setName(t('settings.showCanvasName.name'))
-					.setDesc(t('settings.showCanvasName.desc'))
+					.setName(t('setting.showCanvasName.name'))
+					.setDesc(t('setting.showCanvasName.desc'))
 					.addToggle(comp => comp
 						.setValue(this.getControlValue('showCanvasName'))
 						.onChange(this.setControlValue.bind(this, 'showCanvasName'))
@@ -87,18 +123,40 @@ export class BetterEmbeddedCanvasSettingTab extends PluginSettingTab {
 				)
 				// Press “Space” key to pan
 				.addSetting(row => void row
-					.setName(t('settings.spaceKeyToPan.name'))
-					.setDesc(t('settings.spaceKeyToPan.desc'))
+					.setName(t('setting.spaceKeyToPan.name'))
+					.setDesc(t('setting.spaceKeyToPan.desc'))
 					.addToggle(comp => comp
 						.setValue(this.getControlValue('spaceKeyToPan'))
 						.onChange(this.setControlValue.bind(this, 'spaceKeyToPan'))
 					)
 				);
+
+			new SettingGroup(this.containerEl)
+				// Card embed
+				.setHeading(t('settingHeading.nodeEmbed'))
+				// Embed card content only
+				.addSetting(row => void row
+					.setName(t('setting.embedNodeContentOnly.name'))
+					.setDesc(t('setting.embedNodeContentOnly.desc'))
+					.addToggle(comp => comp
+						.setValue(this.getControlValue('embedNodeContentOnly'))
+						.onChange(this.setControlValue.bind(this, 'embedNodeContentOnly'))
+					)
+				)
+				// Embed cards without its group
+				.addSetting(row => void row
+					.setName(t('setting.embedGroupContentOnly.name'))
+					.setDesc(t('setting.embedGroupContentOnly.desc'))
+					.addToggle(comp => comp
+						.setValue(this.getControlValue('embedGroupContentOnly'))
+						.onChange(this.setControlValue.bind(this, 'embedGroupContentOnly'))
+					)
+				);
 		} else {
 			// Show canvas name
 			new Setting(this.containerEl)
-				.setName(t('settings.showCanvasName.name'))
-				.setDesc(t('settings.showCanvasName.desc'))
+				.setName(t('setting.showCanvasName.name'))
+				.setDesc(t('setting.showCanvasName.desc'))
 				.addToggle(comp => comp
 					.setValue(this.getControlValue('showCanvasName'))
 					.onChange(this.setControlValue.bind(this, 'showCanvasName'))
@@ -106,11 +164,34 @@ export class BetterEmbeddedCanvasSettingTab extends PluginSettingTab {
 
 			// Press “Space” key to pan
 			new Setting(this.containerEl)
-				.setName(t('settings.spaceKeyToPan.name'))
-				.setDesc(t('settings.spaceKeyToPan.desc'))
+				.setName(t('setting.spaceKeyToPan.name'))
+				.setDesc(t('setting.spaceKeyToPan.desc'))
 				.addToggle(comp => comp
 					.setValue(this.getControlValue('spaceKeyToPan'))
 					.onChange(this.setControlValue.bind(this, 'spaceKeyToPan'))
+				);
+
+			// Card embed
+			new Setting(this.containerEl)
+				.setName(t('settingHeading.nodeEmbed'))
+				.setHeading();
+
+			// Embed card content only
+			new Setting(this.containerEl)
+				.setName(t('setting.embedNodeContentOnly.name'))
+				.setDesc(t('setting.embedNodeContentOnly.desc'))
+				.addToggle(comp => comp
+					.setValue(this.getControlValue('embedNodeContentOnly'))
+					.onChange(this.setControlValue.bind(this, 'embedNodeContentOnly'))
+				);
+
+			// Embed cards without its group
+			new Setting(this.containerEl)
+				.setName(t('setting.embedGroupContentOnly.name'))
+				.setDesc(t('setting.embedGroupContentOnly.desc'))
+				.addToggle(comp => comp
+					.setValue(this.getControlValue('embedGroupContentOnly'))
+					.onChange(this.setControlValue.bind(this, 'embedGroupContentOnly'))
 				);
 		}
 		
@@ -260,6 +341,8 @@ export class SettingManager extends Component {
 function getDefaultSettings(): BetterEmbeddedCanvasSettings {
 	return {
 		showCanvasName: true,
-		spaceKeyToPan: true
+		spaceKeyToPan: true,
+		embedNodeContentOnly: true,
+		embedGroupContentOnly: true
 	};
 }
