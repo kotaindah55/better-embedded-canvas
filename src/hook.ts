@@ -27,7 +27,7 @@ function mockLeaf(app: App): WorkspaceLeaf {
  */
 function isInternalLinkSuggestManager(obj: unknown): obj is InternalLinkSuggestManager {
 	if (!obj) return false;
-	let proto = Object.getPrototypeOf(obj);
+	let proto = Object.getPrototypeOf(obj) as unknown;
 	return hasOwnAll(proto, 'matchBlock', 'getHeadingSuggestions', 'getFileSuggestions', 'getSuggestionsAsync');
 }
 
