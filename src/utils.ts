@@ -1,4 +1,10 @@
 import type {
+	AllCanvasNodeData,
+	CanvasData,
+	CanvasEdgeData,
+	CanvasGroupData
+} from 'obsidian/canvas';
+import type {
 	App,
 	CanvasEditor,
 	EmbedCreator,
@@ -212,6 +218,29 @@ export function ensureCanvasRect(canvas: CanvasEditor): void {
 		maxX: width / 2,
 		maxY: width / 2
 	};
+}
+
+/**
+ * Get nodes contained by the given group node.
+ */
+export function getGroupedNodes(group: CanvasGroupData, canvas: CanvasData): AllCanvasNodeData[] {
+	return canvas.nodes.filter(node => (
+		node.id != group.id &&
+		node.x >= group.x &&
+		node.y >= group.y &&
+		node.width <= group.width &&
+		node.height <= group.height
+	));
+}
+
+/**
+ * Get edges connecting between two of given nodes.
+ */
+export function getEdgesFromNodes(nodes: Record<string, AllCanvasNodeData>, canvas: CanvasData): CanvasEdgeData[] {
+	return canvas.edges.filter(edge => (
+		edge.fromNode in nodes &&
+		edge.toNode in nodes
+	));
 }
 
 /**

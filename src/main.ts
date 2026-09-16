@@ -7,6 +7,7 @@ import {
 	Plugin
 } from './obsidian';
 import { CanvasEmbedComponent } from './embed';
+import { CanvasCacheManager } from './cache';
 import { getInternalPlugin, replaceEmbedCreator } from './utils';
 import { patchCanvasEditor } from './patch';
 import { discardAllCanvasEmbeds } from './store';
@@ -21,6 +22,7 @@ import {
 export class BetterEmbeddedCanvasPlugin extends Plugin {
 	public override readonly settings: Readonly<BetterEmbeddedCanvasSettings>;
 	public readonly settingManager: SettingManager;
+	public readonly canvasCache: CanvasCacheManager;
 
 	private readonly settingTab: BetterEmbeddedCanvasSettingTab;
 
@@ -34,6 +36,7 @@ export class BetterEmbeddedCanvasPlugin extends Plugin {
 
 		this.builtinCanvasEmbedCreator = null;
 		this.settingManager = this.addChild(new SettingManager(this));
+		this.canvasCache = this.addChild(new CanvasCacheManager(app));
 		this.settings = this.settingManager.proxify();
 		this.settingTab = new BetterEmbeddedCanvasSettingTab(this);
 
