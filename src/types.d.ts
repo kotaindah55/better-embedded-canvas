@@ -48,6 +48,7 @@ declare module 'obsidian' {
 		embedRegistry: EmbedRegistry;
 		internalPlugins: InternalPluginManager;
 		plugins: PluginManager;
+		viewRegistry: ViewRegistry;
 	}
 
 	interface AppConfig extends Record<string, unknown> {
@@ -500,6 +501,11 @@ declare module 'obsidian' {
 		 * Get user config/setting by key.
 		 */
 		getConfig<T extends keyof AppConfig>(key: T): AppConfig[T];
+	}
+
+	/** @typeonly */
+	class ViewRegistry extends Events {
+		getViewCreatorByType<T extends keyof ViewTypeMap>(type: T): TypedViewCreator<ViewTypeMap[T]> | undefined;
 	}
 
 	interface ViewTypeMap {

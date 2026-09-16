@@ -43,10 +43,6 @@ export class BetterEmbeddedCanvasPlugin extends Plugin {
 		this.canvasCache = this.addChild(new CanvasCacheManager(app));
 		this.settings = this.settingManager.proxify();
 		this.settingTab = new BetterEmbeddedCanvasSettingTab(this);
-
-		// Hook and patch `CanvasEditor` in the beginning of execution order.
-		hookCanvasEditor(app);
-		patchCanvasEditor(this);
 	}
 
 	public override async onload(): Promise<void> {
@@ -62,18 +58,22 @@ export class BetterEmbeddedCanvasPlugin extends Plugin {
 			// This plugin's embed must override Advanced Canvas' embed, not
 			// otherwise.
 			if (this.app.plugins.isEnabled(ADVANCED_CANVAS_PLUGIN_ID) || this.app.workspace.layoutReady) {
+				this.patchCanvas();
 				this.replaceCanvasEmbedCreator();
 			} else {
-				// Replacement must be done before any canvas embed can be rendered.
-				// Vault loads files after all enabled plugins are loaded.
-				let ref = this.app.vault.on('create', () => {
+				let patched = false;
+				let doPatch = () => {
+					if (patched) return;
+					patched = true;
+					this.patchCanvas();
 					this.replaceCanvasEmbedCreator();
 					this.app.vault.offref(ref);
-				});
-				this.app.workspace.onLayoutReady(() => {
-					if (!this.builtinCanvasEmbedCreator) this.replaceCanvasEmbedCreator();
-					this.app.vault.offref(ref);
-				});
+				}
+
+				// Replacement must be done before any canvas embed can be rendered.
+				// Vault loads files after all enabled plugins are loaded.
+				let ref = this.app.vault.on('create', doPatch);
+				this.app.workspace.onLayoutReady(doPatch);
 			}
 		}
 		
@@ -85,6 +85,7 @@ export class BetterEmbeddedCanvasPlugin extends Plugin {
 		this.app.workspace.onLayoutReady(() => {
 			this.isAdvancedCanvasEnabled = this.app.plugins.isEnabled(ADVANCED_CANVAS_PLUGIN_ID);
 			this.registerEvent(this.app.plugins.on('changed', this.handleExternalPluginChange.bind(this)));
+			// Ensure that this patch overrides Advanced Canvas' patch.
 			patchInternalLinkEditorSuggest(this);
 		});
 	}
@@ -97,6 +98,14 @@ export class BetterEmbeddedCanvasPlugin extends Plugin {
 			replaceEmbedCreator(this.app, 'canvas', this.builtinCanvasEmbedCreator);
 
 		noticeReloadAfterDisable(this.app);
+	}
+
+	/**
+	 * Hook and patch `CanvasView` and `CanvasEditor`.
+	 */
+	private patchCanvas(): void {
+		hookCanvasEditor(this.app);
+		patchCanvasEditor(this);
 	}
 
 	private replaceCanvasEmbedCreator(): void {
