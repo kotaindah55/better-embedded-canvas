@@ -83,7 +83,7 @@ export class CanvasEmbedComponent extends Component implements EmbedComponent, C
 		this.headerEl = this.containerEl.createDiv('embed-title', el => {
 			el.createSpan('file-embed-icon', iconEl => setIcon(iconEl, 'lucide-layout-dashboard'));
 			el.appendText(' ' + file.basename);
-			el.addEventListener('click', this.openOnClick.bind(this));
+			el.addEventListener('click', evt => void this.openOnClick(evt));
 			el.toggle(becPlugin.settings.showCanvasName);
 		});
 		this.contentEl = this.containerEl.createDiv('canvas-content');
@@ -102,7 +102,7 @@ export class CanvasEmbedComponent extends Component implements EmbedComponent, C
 		this.openCanvasBtnEl = this.mainControlsEl.createDiv('canvas-control-item', itemEl => {
 			setIcon(itemEl, 'lucide-maximize-2');
 			setTooltip(itemEl, t('tooltipOpenCanvas'), { placement: 'left' });
-			itemEl.addEventListener('click', this.openOnClick.bind(this));
+			itemEl.addEventListener('click', evt => void this.openOnClick(evt));
 		});
 
 		// Button to toggle interaction.

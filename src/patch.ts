@@ -51,6 +51,7 @@ export function patchCanvasEditor(plugin: Plugin): void {
 			//   the embedded one.
 			
 			// Panning using middle button.
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison -- more compact and readable
 			if (evt.button == MouseButton.Middle) {
 				let startPos = this.posFromEvt(evt);
 
@@ -83,6 +84,7 @@ export function patchCanvasEditor(plugin: Plugin): void {
 			}
 			
 			// Panning using right button.
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison -- more compact and readable
 			if (evt.button == MouseButton.Right || Platform.isMacOS && evt.button == MouseButton.Middle && evt.ctrlKey) {
 				let startPos = this.posFromEvt(evt);
 

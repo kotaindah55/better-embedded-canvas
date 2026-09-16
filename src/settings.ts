@@ -152,6 +152,7 @@ export class SettingManager extends Component {
 		this.changed = new Set();
 	}
 
+	// eslint-disable-next-line @typescript-eslint/no-misused-promises -- actually Component.onload() is promisable, needs to wait load completion
 	public override async onload(): Promise<void> {
 		// Obtain plugin settings.
 		Object.assign(this.settings, await this.plugin.loadData());
@@ -166,6 +167,8 @@ export class SettingManager extends Component {
 	 * Triggered when changed the settings.
 	 */
 	public on(name: 'settings-changed', cb: (changed: Set<BetterEmbeddedCanvasSettingKey>) => unknown, ctx?: unknown): EventRef;
+	// eslint-disable-next-line eslint-comments/no-restricted-disable -- needed for overloads
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any -- needed for overloads
 	public on(name: string, cb: (...data: any[]) => unknown, ctx?: unknown): EventRef {
 		return this.dispatcher.on(name, cb, ctx);
 	}
