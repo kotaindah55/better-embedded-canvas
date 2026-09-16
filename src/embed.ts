@@ -56,6 +56,7 @@ export class CanvasEmbedComponent extends Component implements EmbedComponent, C
 	 * Displays file name.
 	 */
 	private readonly headerEl: HTMLElement;
+	private readonly headerInnerEl: HTMLElement;
 	private readonly mainControlsEl: HTMLElement;
 	private readonly zoomControlsEl: HTMLElement;
 	private readonly openCanvasBtnEl: HTMLElement;
@@ -82,10 +83,11 @@ export class CanvasEmbedComponent extends Component implements EmbedComponent, C
 		
 		this.headerEl = this.containerEl.createDiv('embed-title', el => {
 			el.createSpan('file-embed-icon', iconEl => setIcon(iconEl, 'lucide-layout-dashboard'));
-			el.appendText(' ' + file.basename);
+			el.setAttr('data-sub-header', '');
 			el.addEventListener('click', evt => void this.openOnClick(evt));
 			el.toggle(becPlugin.settings.showCanvasName);
 		});
+		this.headerInnerEl = this.headerEl.createSpan('embed-title-inner');
 		this.contentEl = this.containerEl.createDiv('canvas-content');
 
 		this.canvas = getCanvasRenderer(this);
@@ -96,7 +98,7 @@ export class CanvasEmbedComponent extends Component implements EmbedComponent, C
 		});
 
 		this.resizeObserver = new ResizeObserver(this.canvas.onResize.bind(this.canvas));
-		this.mutationObserver = new MutationObserver(this.updateHeight.bind(this));
+		this.mutationObserver = new MutationObserver(this.onAliasChange.bind(this));
 
 		// Button to open canvas fully.
 		this.openCanvasBtnEl = this.mainControlsEl.createDiv('canvas-control-item', itemEl => {
@@ -234,6 +236,7 @@ export class CanvasEmbedComponent extends Component implements EmbedComponent, C
 	 * Initialize canvas rendering.
 	 */
 	private initRender(): void {
+		this.updateHeader();
 		this.updateHeight();
 		this.canvas.zoomToFitQueued = true;
 		this.canvas.onResize();
@@ -242,7 +245,7 @@ export class CanvasEmbedComponent extends Component implements EmbedComponent, C
 		this.resizeObserver.observe(this.containerEl);
 		this.mutationObserver.observe(this.containerEl, {
 			attributes: true,
-			attributeFilter: ['width']
+			attributeFilter: ['width', 'alt']
 		});
 	}
 
@@ -251,7 +254,20 @@ export class CanvasEmbedComponent extends Component implements EmbedComponent, C
 	 */
 	private openOnClick(evt: PointerEvent): void {
 		let leaf = this.app.workspace.getLeaf(Keymap.isModEvent(evt));
-		void leaf.openFile(this.file);
+	/**
+	 * Update embed title based on file name and link alias.
+	 */
+	private updateHeader(): void {
+		let alias = this.containerEl.getAttr('alt');
+		if (alias) {
+			if (this.headerInnerEl.getText() != alias) this.headerInnerEl.setText(alias);
+		} else {
+			let title = this.file.name,
+				subTitle = this.headerEl.getAttr('data-sub-header');
+
+			if (subTitle) title = `${title} > ${subTitle}`;
+			if (this.headerInnerEl.getText() != title) this.headerInnerEl.setText(title);
+		}
 	}
 
 	/**
@@ -284,6 +300,11 @@ export class CanvasEmbedComponent extends Component implements EmbedComponent, C
 				? this.app.dragManager.dragLink(evt, linkText, sourcePath, undefined, source)
 				: null;
 		});
+	}
+
+	private onAliasChange(): void {
+		this.updateHeader();
+		this.updateHeight();
 	}
 
 	private async handleModify(aFile: TAbstractFile): Promise<void> {
