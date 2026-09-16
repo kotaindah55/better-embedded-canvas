@@ -39,12 +39,10 @@ export async function getLastChangelog(): Promise<ChangelogDesc> {
 }
 
 export async function isNewestVersion(version: string): Promise<boolean> {
-	if (!VERSION_VALIDATOR.test(version)) return false;
-
 	let rawManifest = (await readFile('manifest.json')).toString(),
 		manifest = JSON.parse(rawManifest) as { version: string };
 
-	if (!manifest?.version || !VERSION_VALIDATOR.test(manifest.version)) return false;
+	if (!manifest?.version) return false;
 
 	return compareVersions(version, manifest.version) > 0;
 }
