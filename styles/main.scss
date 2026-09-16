@@ -47,4 +47,8 @@ body {
 	& .inline-title {
 		display: block;
 	}
+
+	.popover.hover-popover > .markdown-embed > .markdown-embed-content & .markdown-preview-view {
+		padding: 0 var(--size-4-4);
+	}
 }
