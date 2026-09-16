@@ -1,6 +1,6 @@
 {
 	"name": "better-embedded-canvas",
-	"version": "0.4.0",
+	"version": "1.0.0",
 	"description": "Give your embedded canvas better display and interactivity.",
 	"main": "main.js",
 	"scripts": {

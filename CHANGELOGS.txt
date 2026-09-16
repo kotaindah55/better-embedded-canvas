@@ -1,3 +1,20 @@
+[1.0.0]
+### New features
+
+- **Single card embed**: Embed single card in a note instead of the whole canvas. See #4.
+- **Single card autocompletion**: Show autocompletion when embedding single card in a note.
+
+### Improvement
+
+- Improve Advanced Canvas integration.
+
+### Bug fix
+
+- Cards are shrunk in embedded canvas embedded in hover-preview note.
+- Pressing <kbd>space</kbd> still triggers panning even when interaction is disabled.
+- Nodes shift inaccurately to the right when embedding note is in rtl direction.
+
+---
 [0.4.0]
 ### New feature
 
