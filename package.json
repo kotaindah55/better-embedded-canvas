@@ -4,7 +4,6 @@
 	"description": "Give your embedded canvas better display and interactivity.",
 	"main": "main.js",
 	"scripts": {
-		"postinstall": "npx patch-package",
 		"dev": "npx tsx scripts/esbuild.config.mts",
 		"dev:styles": "npx tsx scripts/sass.config.mts",
 		"build": "tsc -noEmit -skipLibCheck && npx tsx scripts/esbuild.config.mts production",
@@ -29,7 +28,6 @@
 		"eslint-plugin-obsidianmd": "~0.4.1",
 		"i18next": "^26.2.0",
 		"obsidian": "~1.13.1",
-		"patch-package": "^8.0.1",
 		"sass": "~1.101.7",
 		"tsx": "^4.20.3",
 		"typescript": "^6.0.3",
