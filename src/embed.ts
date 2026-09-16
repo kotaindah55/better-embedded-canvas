@@ -488,7 +488,8 @@ export class CanvasEmbedComponent extends Component implements EmbedComponent, C
 	private handleGlobalKeydown(evt: KeyboardEvent): void {
 		if (!this.becPlugin.settings.spaceKeyToPan || !this.isPointerOver) return;
 		// Prevent scrolling when using space key to pan embedded canvas.
-		if (evt.key == ' ' && this.canvas.isHoldingSpace) evt.preventDefault();
+		if (evt.key == ' ' && this.canvas.isHoldingSpace && !this.canvas.noInteraction)
+			evt.preventDefault();
 	}
 
 	/**

@@ -117,6 +117,13 @@ declare module 'obsidian' {
 		 */
 		deselectAll(): void;
 		/**
+		 * "Mover" is an element that covers the whole canvas surface and blocks
+		 * any user interaction but panning. "Mover" will be attached if space
+		 * key is pressed while the pointer is hovering over the canvas, and will
+		 * be detached right after space key is released.
+		 */
+		handleMoverPointerdown(evt: PointerEvent): void;
+		/**
 		 * Initialize `CanvasEditor`.
 		 */
 		load(): void;

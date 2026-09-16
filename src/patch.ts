@@ -26,6 +26,13 @@ const enum MouseButton {
  */
 export function patchCanvasEditor(plugin: BetterEmbeddedCanvasPlugin): void {
 	plugin.register(around(CanvasEditor.prototype, {
+		handleMoverPointerdown: oldFn => dedupe(plugin.manifest.id, oldFn, function (this: CanvasEditor, evt) {
+			// Prevent interaction-disabled canvas from being panned using space
+			// key.
+			if (this.noInteraction) return;
+			oldFn.call(this, evt);
+		}),
+
 		onWheel: oldFn => dedupe(plugin.manifest.id, oldFn, function (this: CanvasEditor, evt) {
 			if (this.noInteraction) return;
 
