@@ -16,7 +16,7 @@ export default {
 	},
 	setting: {
 		showCanvasName: {
-			name: 'Show canvas name',
+			name: 'Show canvas title',
 			desc: 'Show canvas name as embed title.'
 		},
 		spaceKeyToPan: {

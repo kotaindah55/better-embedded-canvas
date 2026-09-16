@@ -16,7 +16,7 @@ export default {
 	},
 	setting: {
 		showCanvasName: {
-			name: 'Tampilkan nama kanvas',
+			name: 'Tampilkan judul kanvas',
 			desc: 'Tampilkan nama kanvas sebagai judul sematan.'
 		},
 		spaceKeyToPan: {
