@@ -44,6 +44,8 @@ export async function getNodeSuggests(
 				// Use group label as an alias.
 				alias = label || '';
 				isGroupNode = true;
+			} else {
+				return;
 			}
 
 			let matches: SearchMatches | null = null,
