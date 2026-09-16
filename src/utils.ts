@@ -53,6 +53,15 @@ export function getInternalPlugin<T extends InternalPluginId>(app: App, id: T): 
 }
 
 /**
+ * Check whether the plugin is actually enabled. `app.plugins.isEnabled()`
+ * only retrieves plugin state from local storage, not actually checks
+ * the plugin.
+ */
+export function isPluginEnabled(app: App, id: string): boolean {
+	return !!app.plugins.getPlugin(id);
+}
+
+/**
  * Indicate that the element is inside `Document` that will be exported
  * as PDF.
  */

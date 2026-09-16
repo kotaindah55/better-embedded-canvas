@@ -481,6 +481,7 @@ declare module 'obsidian' {
 	 * @typeonly
 	 */
 	class PluginManager extends Events {
+		getPlugin(id: string): Plugin | null;
 		isEnabled(id: string): boolean;
 		on(name: 'changed', callback: () => unknown, ctx?: unknown): EventRef;
 	}

@@ -8,7 +8,7 @@ import {
 } from './obsidian';
 import { CanvasEmbedComponent } from './embed';
 import { CanvasCacheManager } from './cache';
-import { getInternalPlugin, replaceEmbedCreator } from './utils';
+import { getInternalPlugin, isPluginEnabled, replaceEmbedCreator } from './utils';
 import { patchCanvasEditor, patchInternalLinkEditorSuggest } from './patch';
 import { discardAllCanvasEmbeds } from './store';
 import { noticeCanvasIsDisabled, noticeReloadAfterDisable, noticeRestartApp } from './notice';
@@ -57,7 +57,7 @@ export class BetterEmbeddedCanvasPlugin extends Plugin {
 		if (getInternalPlugin(this.app, 'canvas').enabled) {
 			// This plugin's embed must override Advanced Canvas' embed, not
 			// otherwise.
-			if (this.app.plugins.isEnabled(ADVANCED_CANVAS_PLUGIN_ID) || this.app.workspace.layoutReady) {
+			if (isPluginEnabled(this.app, ADVANCED_CANVAS_PLUGIN_ID) || this.app.workspace.layoutReady) {
 				this.patchCanvas();
 				this.replaceCanvasEmbedCreator();
 			} else {
@@ -83,7 +83,7 @@ export class BetterEmbeddedCanvasPlugin extends Plugin {
 		}
 
 		this.app.workspace.onLayoutReady(() => {
-			this.isAdvancedCanvasEnabled = this.app.plugins.isEnabled(ADVANCED_CANVAS_PLUGIN_ID);
+			this.isAdvancedCanvasEnabled = isPluginEnabled(this.app, ADVANCED_CANVAS_PLUGIN_ID);
 			this.registerEvent(this.app.plugins.on('changed', this.handleExternalPluginChange.bind(this)));
 			// Ensure that this patch overrides Advanced Canvas' patch.
 			patchInternalLinkEditorSuggest(this);
@@ -132,7 +132,7 @@ export class BetterEmbeddedCanvasPlugin extends Plugin {
 
 	private handleExternalPluginChange(): void {
 		// Prompt user to restart the app after toggling Advanced Canvas plugin.
-		let isAdvancedCanvasEnabled = this.app.plugins.isEnabled(ADVANCED_CANVAS_PLUGIN_ID);
+		let isAdvancedCanvasEnabled = isPluginEnabled(this.app, ADVANCED_CANVAS_PLUGIN_ID);
 		if (this.isAdvancedCanvasEnabled != isAdvancedCanvasEnabled) {
 			this.isAdvancedCanvasEnabled = isAdvancedCanvasEnabled;
 			noticeRestartApp();
