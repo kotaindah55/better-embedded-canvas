@@ -245,8 +245,10 @@ export function getGroupedNodes(group: CanvasGroupData, canvas: CanvasData): All
 		node.id != group.id &&
 		node.x >= group.x &&
 		node.y >= group.y &&
-		node.width <= group.width &&
-		node.height <= group.height
+		// Right
+		node.x + node.width <= group.width + group.x &&
+		// Bottom
+		node.y + node.height <= group.height + group.y
 	));
 }
 
