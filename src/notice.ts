@@ -1,15 +1,23 @@
 import { type App, MarkdownView, Notice } from './obsidian';
 import { t } from './i18n';
 
-export function noticeReload(app: App): void {
-	let notice = new Notice(t('reloadNotice.message'));
+export function noticeReloadAfterDisable(app: App): void {
+	let notice = new Notice(t('notice.reloadAfterDisable'), 0);
 
-	notice.addButton(t('reloadNotice.buttonReload'), () => {
+	notice.addButton(t('buttonReload'), () => {
 		reloadNotes(app);
 		reloadCanvases(app);
 	});
 
-	notice.addButton(t('reloadNotice.buttonDismiss'), () => notice.hide());
+	notice.addButton(t('buttonDismiss'), () => notice.hide());
+}
+
+export function noticeRestartApp(): void {
+	new Notice(t('notice.restartApp'), 5000);
+}
+
+export function noticeCanvasIsDisabled(): void {
+	new Notice(t('notice.canvasIsDisabled'), 5000);
 }
 
 /**

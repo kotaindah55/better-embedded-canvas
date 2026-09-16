@@ -11,13 +11,15 @@ import { CanvasCacheManager } from './cache';
 import { getInternalPlugin, replaceEmbedCreator } from './utils';
 import { patchCanvasEditor } from './patch';
 import { discardAllCanvasEmbeds } from './store';
-import { noticeReload } from './notice';
+import { noticeCanvasIsDisabled, noticeReloadAfterDisable, noticeRestartApp } from './notice';
 import { hookCanvasEditor } from './hook';
 import {
 	type BetterEmbeddedCanvasSettings,
 	BetterEmbeddedCanvasSettingTab,
 	SettingManager
 } from './settings';
+
+const ADVANCED_CANVAS_PLUGIN_ID = 'advanced-canvas';
 
 export class BetterEmbeddedCanvasPlugin extends Plugin {
 	public override readonly settings: Readonly<BetterEmbeddedCanvasSettings>;
@@ -30,11 +32,13 @@ export class BetterEmbeddedCanvasPlugin extends Plugin {
 	 * Stores builtin `EmbedCreator` of embedded canvas.
 	 */
 	private builtinCanvasEmbedCreator: EmbedCreator | null;
+	private isAdvancedCanvasEnabled: boolean;
 
 	public constructor(app: App, manifest: PluginManifest) {
 		super(app, manifest);
 
 		this.builtinCanvasEmbedCreator = null;
+		this.isAdvancedCanvasEnabled = false;
 		this.settingManager = this.addChild(new SettingManager(this));
 		this.canvasCache = this.addChild(new CanvasCacheManager(app));
 		this.settings = this.settingManager.proxify();
@@ -65,7 +69,7 @@ export class BetterEmbeddedCanvasPlugin extends Plugin {
 		if (this.builtinCanvasEmbedCreator)
 			replaceEmbedCreator(this.app, 'canvas', this.builtinCanvasEmbedCreator);
 
-		noticeReload(this.app);
+		noticeReloadAfterDisable(this.app);
 	}
 
 	private replaceCanvasEmbedCreator(): void {
@@ -89,14 +93,17 @@ export class BetterEmbeddedCanvasPlugin extends Plugin {
 	}
 
 	private handleInternalPluginChange<T extends InternalPluginId>(plugin: InternalPlugin<T>): void {
-		if (plugin.instance.id as string != 'canvas') return;
+		// Prompt user to re-enable Canvas plugin and restart the app.
+		if (plugin.instance.id as string == 'canvas' && !plugin.enabled)
+			noticeCanvasIsDisabled();
+	}
 
-		// `CanvasEmbedComponent` can only be displayed if Canvas plugin is
-		// enabled.
-		if (plugin.enabled) {
-			this.replaceCanvasEmbedCreator();
-		} else {
-			this.builtinCanvasEmbedCreator = null;
+	private handleExternalPluginChange(): void {
+		// Prompt user to restart the app after toggling Advanced Canvas plugin.
+		let isAdvancedCanvasEnabled = this.app.plugins.isEnabled(ADVANCED_CANVAS_PLUGIN_ID);
+		if (this.isAdvancedCanvasEnabled != isAdvancedCanvasEnabled) {
+			this.isAdvancedCanvasEnabled = isAdvancedCanvasEnabled;
+			noticeRestartApp();
 		}
 	}
 }
