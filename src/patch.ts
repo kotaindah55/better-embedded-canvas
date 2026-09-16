@@ -1,8 +1,17 @@
 import { around, dedupe } from 'monkey-around';
-import { type Plugin, Platform } from './obsidian';
-import { CanvasEditor } from './hook';
+import {
+	type InternalLinkEditorSuggest,
+	type InternalLinkSuggestManager,
+	Platform,
+	renderMatches,
+	setIcon
+} from './obsidian';
+import { CanvasEditor, hookInternalLinkEditorSuggest } from './hook';
 import { CanvasEmbedComponent } from './embed';
 import { ensureCanvasRect, lockEvent, trackPointer } from './utils';
+import { getComplexSuggestTemplate, getNodeSuggests } from './suggest';
+import type { BetterEmbeddedCanvasPlugin } from './main';
+import { t } from './i18n';
 import * as store from './store';
 
 const enum MouseButton {
@@ -15,7 +24,7 @@ const enum MouseButton {
  * Patch `CanvasEditor` prototype. Unistalled automatically when
  * unloading the plugin.
  */
-export function patchCanvasEditor(plugin: Plugin): void {
+export function patchCanvasEditor(plugin: BetterEmbeddedCanvasPlugin): void {
 	plugin.register(around(CanvasEditor.prototype, {
 		onWheel: oldFn => dedupe(plugin.manifest.id, oldFn, function (this: CanvasEditor, evt) {
 			if (this.noInteraction) return;
@@ -135,6 +144,58 @@ export function patchCanvasEditor(plugin: Plugin): void {
 		updateSelection: oldFn => dedupe(plugin.manifest.id, oldFn, function (this: CanvasEditor, selectCb) {
 			if (this.noInteraction) return;
 			oldFn.call(this, selectCb);
+		})
+	}));
+}
+
+/**
+ * Patch current `InternalLinkEditorSuggest` instance. Unistalled
+ * automatically when unloading the plugin.
+ */
+export function patchInternalLinkEditorSuggest(plugin: BetterEmbeddedCanvasPlugin): void {
+	let suggest = hookInternalLinkEditorSuggest(plugin.app);
+	if (!suggest) return;
+
+	patchInternalLinkSuggestManager(suggest, plugin);
+	plugin.register(around(suggest, {
+		renderSuggestion: oldFn => dedupe(plugin.manifest.id, oldFn, function (this: InternalLinkEditorSuggest, result, suggestEl) {
+			if (result.type == 'alias' && result.isCanvasNode) {
+				let { titleEl, noteEl, flairEl } = getComplexSuggestTemplate(suggestEl);
+
+				suggestEl.toggleClass('mod-downranked', !!result.downranked);
+
+				if (result.label) {
+					renderMatches(titleEl, result.label, result.matches);
+				} else if (result.nodeId) {
+					renderMatches(titleEl, result.nodeId, result.idMatches ?? null);
+				} else {
+					titleEl.createSpan({
+						cls: 'suggestion-empty-suggestion',
+						text: t('editor.suggestion.noMatchedNode')
+					});
+				}
+
+				if (result.nodeId) renderMatches(noteEl, result.nodeId, result.idMatches ?? null);
+				if (result.isGroupNode) setIcon(flairEl, 'lucide-group');
+			} else {
+				oldFn.call(this, result, suggestEl);
+			}
+		})
+	}));
+}
+
+/**
+ * Patch `InternalLinkSuggestManager` instance obtained from internal
+ * link editor suggest. Unistalled automatically when unloading the
+ * plugin.
+ */
+function patchInternalLinkSuggestManager(suggest: InternalLinkEditorSuggest, plugin: BetterEmbeddedCanvasPlugin): void {
+	plugin.register(around(suggest.suggestManager, {
+		getHeadingSuggestions: oldFn => dedupe(plugin.manifest.id, oldFn, async function (this: InternalLinkSuggestManager, runnable, linkpath, query) {
+			let file = this.app.metadataCache.getFirstLinkpathDest(linkpath, this.getSourcePath());
+			return file?.extension == 'canvas'
+				? await getNodeSuggests(plugin, file, linkpath, query)
+				: await oldFn.call(this, runnable, linkpath, query);
 		})
 	}));
 }

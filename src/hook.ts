@@ -23,6 +23,15 @@ function mockLeaf(app: App): WorkspaceLeaf {
 }
 
 /**
+ * Verify that the object is an instance of `InternalLinkSuggestManager`.
+ */
+function isInternalLinkSuggestManager(obj: unknown): obj is InternalLinkSuggestManager {
+	if (!obj) return false;
+	let proto = Object.getPrototypeOf(obj);
+	return hasOwnAll(proto, 'matchBlock', 'getHeadingSuggestions', 'getFileSuggestions', 'getSuggestionsAsync');
+}
+
+/**
  * Hook and store `CanvasView` and `CanvasEditor` constructors.
  */
 export function hookCanvasEditor(app: App): void {
@@ -31,6 +40,21 @@ export function hookCanvasEditor(app: App): void {
 
 	CanvasView = canvasView.constructor as typeof CanvasView;
 	CanvasEditor = canvasView.canvas.constructor as typeof CanvasEditor;
+}
+
+/**
+ * Hook and return `InternalLinkEditorSuggest` instance.
+ */
+export function hookInternalLinkEditorSuggest(app: App): InternalLinkEditorSuggest | null {
+	for (let suggest of app.workspace.editorSuggest.suggests) {
+		if ('suggestManager' in suggest) {
+			let manager = suggest.suggestManager;
+			if (isInternalLinkSuggestManager(manager))
+				return suggest as InternalLinkEditorSuggest;
+		}
+	}
+
+	return null;
 }
 
 export let CanvasView: typeof _CanvasView;

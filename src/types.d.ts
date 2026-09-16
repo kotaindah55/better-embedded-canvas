@@ -23,6 +23,26 @@ declare module 'obsidian' {
 		type: T;
 	}
 
+	interface AliasLinkSuggestResult extends SuggestResult {
+		alias: string;
+		file: TFile | null;
+		/** @augmentation */
+		idMatches?: SearchMatches | null | undefined;
+		/** @augmentation */
+		isCanvasNode?: boolean | undefined;
+		/** @augmentation */
+		isGroupNode?: boolean | undefined;
+		/** @augmentation */
+		label?: string | undefined;
+		/** @augmentation */
+		nodeId?: string | undefined;
+		/**
+		 * Linktext (linkpath + subpath).
+		 */
+		path: string;
+		type: 'alias';
+	}
+
 	interface App {
 		dragManager: DragManager;
 		embedRegistry: EmbedRegistry;
@@ -286,6 +306,11 @@ declare module 'obsidian' {
 		handleDrag(el: HTMLElement, dragHandler: (event: DragEvent) => Draggable | null): void;
 	}
 
+	/** @typeonly */
+	class EditorSuggestManager {
+		suggests: EditorSuggest<unknown>[];
+	}
+
 	interface EmbedComponent extends Component {
 		/**
 		 * Run once before attaching this to the DOM. You should wrap your code
@@ -334,6 +359,31 @@ declare module 'obsidian' {
 		registerExtension(ext: string, creator: EmbedCreator): void;
 		unregisterExtension(ext: string): void;
 	}
+
+	/** @typeonly */
+	class InternalLinkEditorSuggest extends EditorSuggest<InternalLinkSuggestResult> {
+		suggestManager: InternalLinkSuggestManager;
+		getSuggestions(context: EditorSuggestContext): InternalLinkSuggestResult[] | Promise<InternalLinkSuggestResult[]>;
+		onTrigger(cursor: EditorPosition, editor: Editor, file: TFile | null): EditorSuggestTriggerInfo | null;
+		renderSuggestion(value: InternalLinkSuggestResult, el: HTMLElement): void;
+		selectSuggestion(value: InternalLinkSuggestResult, evt: MouseEvent | KeyboardEvent): void;
+	}
+
+	/**
+	 * Querying backend of internal link suggest. Retrieves suggest results
+	 * that are relevant to the given query.
+	 * 
+	 * @typeonly
+	 */
+	class InternalLinkSuggestManager {
+		app: App;
+		getSourcePath: () => string;
+		getHeadingSuggestions(runnable: Runnable, linkpath: string, query: string): Promise<InternalLinkSuggestResult[]>;
+	}
+
+	type InternalLinkSuggestResult =
+		| AliasLinkSuggestResult
+		| TypedSuggestResult<'bases-view' | 'block' | 'file' | 'heading' | 'linktext' | 'none'>;
 
 	/**
 	 * Wraps `InternalPluginInstance` instance.
@@ -427,6 +477,22 @@ declare module 'obsidian' {
 		on(name: 'changed', callback: () => unknown, ctx?: unknown): EventRef;
 	}
 
+	/** @typeonly */
+	class Runnable {
+		isCancelled(): boolean;
+		isRunning(): boolean;
+	}
+
+	interface SuggestResult {
+		downranked?: boolean;
+		matches: SearchMatches | null;
+		score: number;
+	}
+
+	interface TypedSuggestResult<T extends string = string> extends SuggestResult {
+		type: T;
+	}
+
 	type TypedViewCreator<T extends View> = (leaf: WorkspaceLeaf) => T;
 
 	interface Vault {
@@ -439,6 +505,10 @@ declare module 'obsidian' {
 	interface ViewTypeMap {
 		canvas: CanvasView;
 		markdown: MarkdownView;
+	}
+
+	interface Workspace {
+		editorSuggest: EditorSuggestManager;
 	}
 
 	interface WorkspaceLeaf {

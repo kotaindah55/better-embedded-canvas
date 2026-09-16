@@ -9,7 +9,7 @@ import {
 import { CanvasEmbedComponent } from './embed';
 import { CanvasCacheManager } from './cache';
 import { getInternalPlugin, replaceEmbedCreator } from './utils';
-import { patchCanvasEditor } from './patch';
+import { patchCanvasEditor, patchInternalLinkEditorSuggest } from './patch';
 import { discardAllCanvasEmbeds } from './store';
 import { noticeCanvasIsDisabled, noticeReloadAfterDisable, noticeRestartApp } from './notice';
 import { hookCanvasEditor } from './hook';
@@ -85,6 +85,7 @@ export class BetterEmbeddedCanvasPlugin extends Plugin {
 		this.app.workspace.onLayoutReady(() => {
 			this.isAdvancedCanvasEnabled = this.app.plugins.isEnabled(ADVANCED_CANVAS_PLUGIN_ID);
 			this.registerEvent(this.app.plugins.on('changed', this.handleExternalPluginChange.bind(this)));
+			patchInternalLinkEditorSuggest(this);
 		});
 	}
 

@@ -14,6 +14,14 @@ import type {
 } from './obsidian';
 
 /**
+ * Check whether the object has all the properties.
+ */
+export function hasOwnAll<T, P extends string>(obj: T, ...props: P[]): obj is T & Record<P, unknown> {
+	if (!obj || typeof obj != 'object' && typeof obj != 'function') return false;
+	return props.every(prop => Object.hasOwn(obj, prop));
+}
+
+/**
  * Safely replace registered `EmbedCreator` with another `EmbedCreator`.
  * 
  * @param app `App` instance.
