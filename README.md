@@ -105,10 +105,18 @@ With both:
 ![[My canvas.canvas#00b6cc18e01988a6|My card|500]]
 ```
 
+You can change how the card embed should be displayed:
+- Enable **Settings → Better Embedded Canvas → Card embed → Embed card content only** to embed only the content of the text card. Or, disable it to embed the card along with the canvas interface.
+- Enable **Settings → Better Embedded Canvas → Card embed → Embed cards without group** to hide group card while only show the cards inside. Or, disable it to show the group card instead.
+
 Searching and typing card id manually can be very inconvinient. Therefore, Better Embedded Canvas provides autocompletion for that. To use autocompletion:
 1. Type a hash (`#`) at the end of the link destination (as mentioned before). Autocompletion popover will be shown right after that.
 2. You can search for specific card by the content of text card, the name of the group card, or the card id itself.
 3. Select the card you want to embed.
+
+> [!NOTE]
+>
+> Autocompletion suggests text and group cards only.
 
 > [!NOTE]
 >
