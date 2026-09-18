@@ -12,6 +12,7 @@ import { getInternalPlugin, isPluginEnabled, replaceEmbedCreator } from './utils
 import { patchCanvasEditor, patchInternalLinkEditorSuggest } from './patch';
 import { discardAllCanvasEmbeds } from './store';
 import { noticeCanvasIsDisabled, noticeReloadAfterDisable, noticeRestartApp } from './notice';
+import { CanvasChooserModal } from './chooser-modal';
 import { hookCanvasEditor } from './hook';
 import {
 	type BetterEmbeddedCanvasSettings,
@@ -25,6 +26,7 @@ export class BetterEmbeddedCanvasPlugin extends Plugin {
 	public override readonly settings: Readonly<BetterEmbeddedCanvasSettings>;
 	public readonly settingManager: SettingManager;
 	public readonly canvasCache: CanvasCacheManager;
+	public readonly canvasChooser: CanvasChooserModal;
 
 	private readonly settingTab: BetterEmbeddedCanvasSettingTab;
 
@@ -41,6 +43,7 @@ export class BetterEmbeddedCanvasPlugin extends Plugin {
 		this.isAdvancedCanvasEnabled = false;
 		this.settingManager = this.addChild(new SettingManager(this));
 		this.canvasCache = this.addChild(new CanvasCacheManager(app));
+		this.canvasChooser = new CanvasChooserModal(this);
 		this.settings = this.settingManager.proxify();
 		this.settingTab = new BetterEmbeddedCanvasSettingTab(this);
 	}

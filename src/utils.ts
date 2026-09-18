@@ -22,6 +22,13 @@ export function hasOwnAll<T, P extends string>(obj: T, ...props: P[]): obj is T 
 }
 
 /**
+ * Defer function call until the next tick.
+ */
+export function defer(fn: () => unknown): void {
+	window.setTimeout(fn, 0);
+}
+
+/**
  * Safely replace registered `EmbedCreator` with another `EmbedCreator`.
  * 
  * @param app `App` instance.
