@@ -97,7 +97,7 @@ You can adjust the title and the height by adding them after the card id.
 ```markdown
 With custom title:
 ![[My canvas.canvas#00b6cc18e01988a6|My card]]
-
+You can embed a canvas or single card
 With adjusted height:
 ![[My canvas.canvas#00b6cc18e01988a6|500]]
 
@@ -121,6 +121,16 @@ Searching and typing card id manually can be very inconvinient. Therefore, Bette
 > [!NOTE]
 >
 > Group card is suffixed with group icon (![lucide-group]) in autocompletion popover.
+
+#### Embed using hotkey and command
+
+![embed-command.gif](./assests/embed-command.gif)
+
+You can embed a canvas or single card in a note via hotkey and command:
+- **Better Embedded Canvas: Embed canvas** to embed a canvas.
+- **Better Embedded Canvas: Embed canvas card** to embed single card.
+
+Especially for mobile user, you can add them as options in [the mobile toolbar][obsidian-help-mobile-toolbar].
 
 #### Drag and drop functionality
 
@@ -248,6 +258,7 @@ Thanks to:
 [obsidian-help-embeds]: https://obsidian.md/help/embeds
 [obsidian-help-links]: https://obsidian.md/help/links
 [obsidian-help-links-heading]: https://obsidian.md/help/links#Link+to+a+heading+in+a+note
+[obsidian-help-mobile-toolbar]: https://obsidian.md/help/mobile#Mobile+toolbar
 [obsidian-help-page-preview]: https://obsidian.md/help/plugins/page-preview
 
 [BRAT]: https://github.com/TfTHacker/obsidian42-brat
