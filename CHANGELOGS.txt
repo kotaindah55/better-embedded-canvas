@@ -1,3 +1,10 @@
+[1.1.0]
+### New feature
+
+Provide two commands to embed a canvas or single card via Hotkeys, Command palattes, and mobile toolbar:
+- **Better Embedded Canvas: Embed canvas** to embed a canvas.
+- **Better Embedded Canvas: Embed canvas card** to embed single card.
+---
 [1.0.0]
 ### New features
 
