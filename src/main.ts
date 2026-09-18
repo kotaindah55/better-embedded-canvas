@@ -14,6 +14,7 @@ import { discardAllCanvasEmbeds } from './store';
 import { noticeCanvasIsDisabled, noticeReloadAfterDisable, noticeRestartApp } from './notice';
 import { CanvasChooserModal } from './chooser-modal';
 import { hookCanvasEditor } from './hook';
+import { registerCommands } from './commands';
 import {
 	type BetterEmbeddedCanvasSettings,
 	BetterEmbeddedCanvasSettingTab,
@@ -55,6 +56,8 @@ export class BetterEmbeddedCanvasPlugin extends Plugin {
 		this.addSettingTab(this.settingTab);
 		// Triggered each time a core plugin is enabled/disabled.
 		this.registerEvent(this.app.internalPlugins.on('change', this.handleInternalPluginChange.bind(this)));
+		// Register plugin's commands.
+		registerCommands(this);
 
 		// Replace current creator of embedded canvas at first.
 		if (getInternalPlugin(this.app, 'canvas').enabled) {

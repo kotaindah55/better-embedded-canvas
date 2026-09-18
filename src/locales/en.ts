@@ -9,6 +9,10 @@ export default {
 			noMatchedNode: 'No matched card'
 		}
 	},
+	command: {
+		embedCanvas: 'Embed canvas',
+		embedCanvasNode: 'Embed canvas card'
+	},
 	notice: {
 		reloadAfterDisable: 'It is recommended to reload all open notes and canvases after disable or uninstall Better Embedded Canvas plugin (your data are preserved).',
 		restartApp: 'Restart the app to ensure the Better Embedded Canvas plugin runs properly.',

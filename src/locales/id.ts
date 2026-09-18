@@ -9,6 +9,10 @@ export default {
 			noMatchedNode: 'Tidak ada kartu yang cocok'
 		}
 	},
+	command: {
+		embedCanvas: 'Sematkan kanvas',
+		embedCanvasNode: 'Sematkan kartu kanvas'
+	},
 	notice: {
 		reloadAfterDisable: 'Disarankan untuk memuat ulang seluruh catatan dan kanvas yang terbuka setelah menonaktifkan atau menghapus plugin Better Embedded Canvas (data Anda data tetap terjaga).',
 		restartApp: 'Mulai ulang aplikasi untuk memastikan plugin Better Embedded Canvas berjalan dengan baik.',
