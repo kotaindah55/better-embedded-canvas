@@ -1,12 +1,13 @@
-import { spawnSync } from 'child_process';
-import { readFileSync } from 'fs';
-import type { ManifestConfig } from './version-bump.mjs';
-import process from 'process';
+import childProcess from 'node:child_process';
+import { getManifest } from './utils/config-util.mjs';
+import { isValidVersion } from './utils/version-util.mjs';
 
-let { version } = JSON.parse(readFileSync('manifest.json', 'utf8')) as ManifestConfig;
+async function main(): Promise<void> {
+	let { version } = await getManifest();
+	if (!isValidVersion(version)) throw Error('Manifest use invalid version');
 
-if (process.argv[2] !== 'no-package-lock')
-	spawnSync('npm', ['run', 'lock']);
+	childProcess.spawnSync('git', ['tag', '-a', version, '-f', '-m', `'${version}'`]);
+	childProcess.spawnSync('git', ['push', '-f', 'origin', version]);
+}
 
-spawnSync('git', ['tag', '-a', version, '-f', '-m', `'${version}'`]);
-spawnSync('git', ['push', '-f', 'origin', version]);
+await main();

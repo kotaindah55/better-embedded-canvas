@@ -1,12 +1,18 @@
-import { spawnSync } from 'child_process';
-import process from 'process';
+import childProcess from 'node:child_process';
+import process from 'node:process';
+import { rootAsCwd } from './utils/directory-util.mjs';
 
-const noPush = (process.argv[2] === 'no-push');
+function main(): void {
+	let autoPush = process.argv[2] === 'auto-push';
 
-spawnSync('npm', ['install', '--package-lock-only']);
+	rootAsCwd();
+	childProcess.spawnSync('npm', ['install', '--package-lock-only']);
 
-if (!noPush) {
-	spawnSync('git', ['add', 'package-lock.json']);
-	spawnSync('git', ['commit', 'package-lock.json', '-m', 'chore: generate package-lock.json']);
-	spawnSync('git', ['push', 'origin']);
+	if (autoPush) {
+		childProcess.spawnSync('git', ['add', 'package-lock.json']);
+		childProcess.spawnSync('git', ['commit', 'package-lock.json', '-m', 'chore: generate package-lock.json']);
+		childProcess.spawnSync('git', ['push', 'origin']);
+	}
 }
+
+main();

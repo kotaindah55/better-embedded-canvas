@@ -1,11 +1,24 @@
-import { getLastChangelog } from './utils.mjs';
-import { readFileSync, writeFileSync } from 'fs';
-import type { ManifestConfig } from './version-bump.mjs';
+import fsPromises from 'node:fs/promises';
+import { type ChangelogDesc, getLastChangelog } from './utils/changelog-util.mjs';
+import { at } from './utils/directory-util.mjs';
+import { getManifest } from './utils/config-util.mjs';
 
-let { changelog, version } = await getLastChangelog(),
-	manifest = JSON.parse(readFileSync('manifest.json', 'utf8')) as ManifestConfig;
+async function validate(changelog: ChangelogDesc): Promise<boolean> {
+	let manifest = await getManifest();
+	return manifest.version === changelog.version;
+}
 
-if (version !== manifest.version)
-	throw Error('Manifest version doesn\'t match with the changelog!');
+async function print(changelog: ChangelogDesc): Promise<void> {
+	await fsPromises.writeFile(at('CHANGELOG.md'), changelog.text);
+}
 
-writeFileSync('CHANGELOG.md', changelog);
+async function main(): Promise<void> {
+	let changelog = await getLastChangelog();
+	if (await validate(changelog)) {
+		await print(changelog);
+	} else {
+		throw Error('Manifest version doesn\'t match with the changelog');
+	}
+}
+
+await main();

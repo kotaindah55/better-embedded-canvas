@@ -2,18 +2,18 @@
 	"name": "better-embedded-canvas",
 	"version": "1.1.0",
 	"description": "Give your embedded canvas better display and interactivity.",
-	"main": "main.js",
+	"main": "dist/main.js",
 	"scripts": {
-		"dev": "npx tsx scripts/esbuild.config.mts",
-		"dev:styles": "npx tsx scripts/sass.config.mts",
-		"build": "tsc -noEmit -skipLibCheck && npx tsx scripts/esbuild.config.mts production",
-		"build:styles": "npx tsx scripts/sass.config.mts production",
-		"version": "npx tsx scripts/version-bump.mts",
-		"changelog": "npx tsx scripts/print-changelog.mts",
-		"publish": "npx tsx scripts/publish.mts",
-		"publish:no-package-lock": "npx tsx scripts/publish.mts no-package-lock",
+		"build": "tsc -noEmit -skipLibCheck && npx tsx scripts/build.mts",
+		"build:dev": "npx tsx scripts/build.mts dev",
+		"build:styles": "npx tsx scripts/build-styles.mts",
+		"build:styles:dev": "npx tsx scripts/build-styles.mts dev",
+		"version": "npx tsx scripts/bump-version.mts",
+		"version:auto-push": "npx tsx scripts/bump-version.mts auto-push",
 		"lock": "npx tsx scripts/lock-package.mts",
-		"lock:no-push": "npx tsx scripts/lock-package.mts no-push"
+		"lock:auto-push": "npx tsx scripts/lock-package.mts auto-push",
+		"publish": "npx tsx scripts/publish.mts",
+		"changelog": "npx tsx scripts/print-changelog.mts"
 	},
 	"keywords": [
 		"obsidian-plugin"

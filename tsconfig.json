@@ -46,6 +46,6 @@
 	},
 	"include": [
 		"src/**/*.ts",
-		"scripts/*.mts"
+		"scripts/**/*.mts"
 	]
 }
