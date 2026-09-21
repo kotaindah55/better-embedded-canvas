@@ -5,25 +5,22 @@ import tslint from 'typescript-eslint';
 import obsidianmdlint from 'eslint-plugin-obsidianmd';
 import tsParser from '@typescript-eslint/parser';
 
-export default defineConfig({
+const ignored = [
+	'**/node_modules/',
+	'**/libs/',
+	'**/dist/',
+	'**/*.{js,mjs}'
+];
+
+const mainLintConfig = {
 	files: [
 		'**/*.{ts,mts}'
 	],
-	ignores: [
-		'**/.deprecated/',
-		'**/@external',
-		'**/node_modules/',
-		'**/libs/',
-		'**/dist/',
-		'**/main.js',
-		'**/esbuild.config.mjs',
-		'**/eslint.config.mjs'
-	],
+	ignores: ignored,
 	extends: [
 		eslint.configs.recommended,
 		...tslint.configs.strictTypeChecked,
-		...tslint.configs.stylisticTypeChecked,
-		...obsidianmdlint.configs.recommended
+		...tslint.configs.stylisticTypeChecked
 	],
 	languageOptions: {
 		globals: { ...globals.node },
@@ -42,20 +39,6 @@ export default defineConfig({
 		'no-undef': 'off',
 		'no-prototype-builtins': 'off',
 		'no-cond-assign': 'off',
-		'obsidianmd/ui/sentence-case': [
-			'error', { brands: [
-				'Better Embedded Canvas',
-				'“Space”',
-				'“Settings → Core plugins”'
-			]}
-		],
-		'obsidianmd/ui/sentence-case-locale-module': [
-			'error', { brands: [
-				'Better Embedded Canvas',
-				'“Space”',
-				'“Settings → Core plugins”'
-			]}
-		],
 		'@typescript-eslint/no-empty-function': 'off',
 		'@typescript-eslint/await-thenable': 'off',
 		'@typescript-eslint/no-unsafe-argument': 'off',
@@ -73,4 +56,31 @@ export default defineConfig({
 		],
 		'@typescript-eslint/no-non-null-assertion': 'warn'
 	}
-});
+};
+
+const obsidianLintConfig = {
+	files: [
+		'src/*.ts'
+	],
+	ignores: ignored.concat([
+		'scripts/',
+		'**/*.d.ts'
+	]),
+	extends: [
+		...obsidianmdlint.configs.recommended
+	],
+	rules: {
+		'obsidianmd/ui/sentence-case': [
+			'error', { brands: [
+				'Mainstream Icons'
+			]}
+		],
+		'obsidianmd/ui/sentence-case-locale-module': [
+			'error', { brands: [
+				'Mainstream Icons'
+			]}
+		]
+	}
+};
+
+export default defineConfig(mainLintConfig, obsidianLintConfig);
