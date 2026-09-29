@@ -19,6 +19,7 @@ import {
 	BetterEmbeddedCanvasSettingTab,
 	SettingManager
 } from './settings';
+import * as store from './store';
 
 const ADVANCED_CANVAS_PLUGIN_ID = 'advanced-canvas';
 
@@ -99,7 +100,7 @@ export class BetterEmbeddedCanvasPlugin extends Plugin {
 
 	public override onunload(): void {
 		super.onunload();
-		discardAllCanvasEmbeds();
+		store.discardAllCanvasEmbeds();
 
 		if (this.builtinCanvasEmbedCreator)
 			replaceEmbedCreator(this.app, 'canvas', this.builtinCanvasEmbedCreator);
@@ -108,7 +109,7 @@ export class BetterEmbeddedCanvasPlugin extends Plugin {
 	}
 
 	/**
-	 * Hook and patch `CanvasView` and `CanvasEditor`.
+	 * Hook and patch `CanvasView` and `Canvas`.
 	 */
 	private patchCanvas(): void {
 		hookCanvasEditor(this.app);
@@ -116,19 +117,7 @@ export class BetterEmbeddedCanvasPlugin extends Plugin {
 	}
 
 	private replaceCanvasEmbedCreator(): void {
-		this.builtinCanvasEmbedCreator = replaceEmbedCreator(this.app, 'canvas', (ctx, file, subpath?) => {
-			// Avoid deeply, or probably infinite, embedded canvases.
-			//
-			// KNOWN ISSUE:
-			// It only works on canvas embedded within embedded notes. In contrast,
-			// it does not work on canvas embedded within embedded canvas as
-			// `ctx.depth` remains at 1.
-			if (ctx.depth !== undefined && ctx.depth > 2) {
-				return this.builtinCanvasEmbedCreator!(ctx, file, subpath);
-			} else {
-				return CanvasEmbedComponent.create(this, ctx, file, subpath);
-			}
-		});
+		this.builtinCanvasEmbedCreator = replaceEmbedCreator(this.app, 'canvas', CanvasEmbedComponent.create.bind(null, this));
 	}
 
 	private handleInternalPluginChange<T extends InternalPluginId>(plugin: InternalPlugin<T>): void {

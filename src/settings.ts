@@ -33,6 +33,15 @@ export interface BetterEmbeddedCanvasSettings {
 	 * Omit group node while only show its content.
 	 */
 	embedGroupContentOnly: boolean;
+	/**
+	 * Embed canvas inside another canvas.
+	 */
+	nestedCanvas: boolean;
+	/**
+	 * How deeply can a embedded canvas be nested within note or another
+	 * canvas.
+	 */
+	maxEmbedDepth: number;
 }
 
 export type BetterEmbeddedCanvasSettingKey = keyof BetterEmbeddedCanvasSettings;
@@ -348,6 +357,8 @@ function getDefaultSettings(): BetterEmbeddedCanvasSettings {
 		showCanvasName: true,
 		spaceKeyToPan: true,
 		embedNodeContentOnly: true,
-		embedGroupContentOnly: true
+		embedGroupContentOnly: true,
+		nestedCanvas: true,
+		maxEmbedDepth: 1
 	};
 }

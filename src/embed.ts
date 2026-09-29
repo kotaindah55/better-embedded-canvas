@@ -21,6 +21,7 @@ import type { BetterEmbeddedCanvasPlugin } from './main';
 import type { BetterEmbeddedCanvasSettingKey } from './settings';
 import { CanvasView } from './hook';
 import { t } from './i18n';
+import { renderStaticCanvas } from './static-canvas';
 import * as store from './store';
 
 /**
@@ -29,7 +30,8 @@ import * as store from './store';
 const MIN_CANVAS_HEIGHT = 300;
 
 const enum CanvasEmbedMode {
-	Canvas,
+	Interactive,
+	Static,
 	Markdown
 }
 
@@ -39,7 +41,7 @@ const enum CanvasEmbedMode {
 export class CanvasEmbedComponent extends Component implements EmbedComponent, CanvasOwner {
 	public readonly app: App;
 	public readonly canvas: Canvas;
-	public readonly contentEl: HTMLElement;
+	public readonly containerEl: HTMLElement;
 	public readonly plugin: CanvasPluginInstance;
 	public readonly file: TFile;
 	public readonly ctx: EmbedContext;
@@ -51,12 +53,13 @@ export class CanvasEmbedComponent extends Component implements EmbedComponent, C
 	public isPointerOver: boolean;
 
 	private readonly becPlugin: BetterEmbeddedCanvasPlugin;
-	private readonly containerEl: HTMLElement;
 	/**
 	 * Displays file name.
 	 */
 	private readonly headerEl: HTMLElement;
 	private readonly headerInnerEl: HTMLElement;
+	private readonly canvasEl: HTMLElement;
+	private readonly staticEl: SVGSVGElement;
 	private readonly markdownEl: HTMLElement;
 	private readonly markdownPreviewEl: HTMLElement;
 	private readonly mainControlsEl: HTMLElement;
@@ -73,8 +76,12 @@ export class CanvasEmbedComponent extends Component implements EmbedComponent, C
 	/**
 	 * Controls lifecycle of the markdown-rendered node content.
 	 */
-	private child?: Component;
+	private child: Component;
+	private ensuringDepth: Promise<void> | null;
 
+	public get contentEl(): HTMLElement {
+		return this.canvasEl;
+	}
 	/**
 	 * Specific canvas node id that will be rendered. `null` means the whole
 	 * canvas is to be rendered instead.
@@ -95,7 +102,9 @@ export class CanvasEmbedComponent extends Component implements EmbedComponent, C
 		this.file = file;
 		this.subpath = subpath;
 		this.isPointerOver = false;
-		this.mode = CanvasEmbedMode.Canvas;
+		this.mode = CanvasEmbedMode.Interactive;
+		this.child = new Component();
+		this.ensuringDepth = null;
 		
 		this.containerEl = ctx.containerEl;
 		this.containerEl.addClass('canvas-embed', 'better-canvas-embed');
@@ -108,7 +117,9 @@ export class CanvasEmbedComponent extends Component implements EmbedComponent, C
 			el.toggle(becPlugin.settings.showCanvasName);
 		});
 		this.headerInnerEl = this.headerEl.createSpan('embed-title-inner');
-		this.contentEl = this.containerEl.createDiv('canvas-content');
+
+		this.canvasEl = this.containerEl.createDiv('canvas-content');
+		this.staticEl = createSvg('svg', 'canvas-minimap');
 		this.markdownEl = createDiv('markdown-embed-content');
 		this.markdownPreviewEl = this.markdownEl.createDiv('markdown-preview-view markdown-rendered');
 
@@ -196,7 +207,6 @@ export class CanvasEmbedComponent extends Component implements EmbedComponent, C
 		this.mutationObserver.disconnect();
 		this.canvas.unload();
 
-		delete this.child;
 		store.discardCanvasEmbed(this);
 	}
 
@@ -223,8 +233,17 @@ export class CanvasEmbedComponent extends Component implements EmbedComponent, C
 	public saveLocalData(): void {}
 
 	public async loadFile(): Promise<void> {
+		// Cache embedding depth.
 		let data = await this.app.vault.cachedRead(this.file);
-		await this.setData(data, true);
+		if (this.containerEl.isShown()) {
+			this.ensureDepth();
+			await this.setData(data, true);
+		} else {
+			this.containerEl.onNodeInserted(() => {
+				this.ensureDepth();
+				void this.setData(data, true);
+			}, true);
+		}
 	}
 
 	public async reload(): Promise<void> {
@@ -239,21 +258,24 @@ export class CanvasEmbedComponent extends Component implements EmbedComponent, C
 	 * @param firstLoad Set it to true if this is first data loading.
 	 */
 	private async setData(data: string, firstLoad: boolean): Promise<void> {
-		// Discard previous markdown-rendered node content if any.
-		if (this.child) {
-			this.removeChild(this.child);
-			delete this.child;
-		}
-
 		let nodeId = this.nodeId,
 			subHeader = '',
-			mode = CanvasEmbedMode.Canvas,
-			markdown = '';
+			markdown = '',
+			serialized: CanvasData | null = null;
+
+		let mode = this.shouldBeStatic()
+			? CanvasEmbedMode.Static
+			: CanvasEmbedMode.Interactive;
+
+		// Discard previous markdown-rendered node content if any.
+		this.removeChild(this.child);
+		// Empty static canvas element.
+		this.staticEl.empty();
 
 		// Render single node / group.
 		if (nodeId !== null) {
-			let cache = this.becPlugin.canvasCache.getCache(this.file, data),
-				serialized: CanvasData = { nodes: [], edges: [] };
+			let cache = this.becPlugin.canvasCache.getCache(this.file, data);
+			serialized = { nodes: [], edges: [] };
 
 			if (cache) {
 				let target = cache.nodes[nodeId];
@@ -293,13 +315,10 @@ export class CanvasEmbedComponent extends Component implements EmbedComponent, C
 				}
 				Object.assign(serialized, cache.data);
 			}
-
-			this.canvas.setData(serialized);
 		}
 
 		else try {
-			let serialized = JSON.parse(data) as CanvasData;
-			this.canvas.setData(serialized);
+			serialized = JSON.parse(data) as CanvasData;
 		} catch (err) {
 			console.error(err);
 		}
@@ -312,26 +331,37 @@ export class CanvasEmbedComponent extends Component implements EmbedComponent, C
 		this.setMode(mode);
 		this.updateHeader();
 
-		if (this.mode == CanvasEmbedMode.Markdown) {
-			this.child = this.addChild(new Component());
+		if (this.mode === CanvasEmbedMode.Interactive && serialized) {
+			this.canvas.setData(serialized);
+		} else {
+			this.canvas.clear();
+		}
+
+		if (this.mode === CanvasEmbedMode.Static && serialized) {
+			renderStaticCanvas(serialized, this.staticEl);
+		}
+
+		if (this.mode === CanvasEmbedMode.Markdown) {
 			// Reset rendered markdown on child unload.
 			this.child.register(() => this.markdownPreviewEl.empty());
+			this.addChild(this.child);
 			await MarkdownRenderer.render(this.app, markdown, this.markdownPreviewEl, this.ctx.sourcePath ?? '', this.child);
 		}
 
 		if (firstLoad) {
-			if (beingExportedAsPDF(this.containerEl)) {
+			if (beingExportedAsPDF(this.containerEl) || this.containerEl.isShown()) {
 				this.initRender();
 			} else {
 				// Sometimes, `containerEl` is not immediately loaded into the DOM.
 				this.containerEl.onNodeInserted(this.initRender.bind(this), true);
 			}
-		} else {
+		} else if (this.mode === CanvasEmbedMode.Interactive) {
 			this.canvas.requestFrame();
 		}
 
 		// Let Advanced Canvas plugin run on top of this embed.
-		this.app.workspace.trigger('advanced-canvas:canvas-changed', this.canvas);
+		if (this.mode === CanvasEmbedMode.Interactive)
+			this.app.workspace.trigger('advanced-canvas:canvas-changed', this.canvas);
 	}
 
 	/**
@@ -396,7 +426,7 @@ export class CanvasEmbedComponent extends Component implements EmbedComponent, C
 		// First value of specified dimension (e.g. "400" in "[[link-to-file|400x300]]")
 		// is stored as "width" attribute value.
 		let height = Number(this.containerEl.getAttr('width'));
-		this.contentEl.setCssStyles({ height: height && height > MIN_CANVAS_HEIGHT
+		this.canvasEl.setCssStyles({ height: height && height > MIN_CANVAS_HEIGHT
 			? toPx(height)
 			: toPx(MIN_CANVAS_HEIGHT)
 		});
@@ -407,22 +437,48 @@ export class CanvasEmbedComponent extends Component implements EmbedComponent, C
 	 */
 	private setMode(mode: CanvasEmbedMode): void {
 		if (this.mode === mode) return;
-
 		this.mode = mode;
 
-		if (mode === CanvasEmbedMode.Canvas) {
-			this.markdownEl.detach();
-			this.containerEl.append(this.contentEl);
+		let isInteractive = mode === CanvasEmbedMode.Interactive,
+			isStatic = mode === CanvasEmbedMode.Static,
+			isMarkdown = mode === CanvasEmbedMode.Markdown;
 
-			this.containerEl.removeClass('markdown-embed');
-			this.headerEl.removeClass('markdown-embed-title');
+		if (isInteractive) {
+			this.containerEl.append(this.canvasEl);
 		} else {
-			this.contentEl.detach();
-			this.containerEl.append(this.markdownEl);
-
-			this.containerEl.addClass('markdown-embed');
-			this.headerEl.addClass('markdown-embed-title');
+			this.canvasEl.detach();
 		}
+
+		if (isStatic) {
+			this.containerEl.append(this.staticEl);
+		} else {
+			this.staticEl.detach();
+		}
+
+		if (isMarkdown) {
+			this.containerEl.append(this.markdownEl);
+		} else {
+			this.markdownEl.detach();
+		}
+
+		this.containerEl.toggleClass('markdown-embed', isMarkdown);
+		this.headerEl.toggleClass('markdown-embed-title', isMarkdown);
+	}
+
+	/**
+	 * Ensure correct embedding depth of this embed.
+	 */
+	private ensureDepth(): void {
+		let depth = store.getEmbedDepth(this.containerEl);
+		if (depth !== null && depth >= this.ctx.depth) this.ctx.depth = depth + 1;
+		store.cacheEmbedDepth(this.containerEl, this.ctx.depth);
+	}
+
+	private shouldBeStatic(): boolean {
+		return (
+			this.ctx.depth > this.becPlugin.settings.maxEmbedDepth ||
+			insideCanvasNode(this.containerEl) && !this.becPlugin.settings.nestedCanvas
+		);
 	}
 
 	/**
@@ -465,7 +521,12 @@ export class CanvasEmbedComponent extends Component implements EmbedComponent, C
 			let show = this.becPlugin.settings.showCanvasName;
 			this.headerEl.toggle(show);
 		}
-		if (changed.has('embedGroupContentOnly') || changed.has('embedNodeContentOnly')) {
+
+		if (
+			changed.has('embedGroupContentOnly') || changed.has('embedNodeContentOnly') ||
+			changed.has('nestedCanvas') && insideCanvasNode(this.containerEl) ||
+			changed.has('maxEmbedDepth') && (this.mode === CanvasEmbedMode.Static) !== this.shouldBeStatic()
+		) {
 			void this.reload();
 		}
 	}
@@ -479,7 +540,7 @@ export class CanvasEmbedComponent extends Component implements EmbedComponent, C
 	}
 
 	private handleGlobalKeydown(evt: KeyboardEvent): void {
-		if (!this.becPlugin.settings.spaceKeyToPan || !this.isPointerOver) return;
+		if (this.mode !== CanvasEmbedMode.Interactive || !this.becPlugin.settings.spaceKeyToPan || !this.isPointerOver) return;
 		// Prevent scrolling when using space key to pan embedded canvas.
 		if (evt.key == ' ' && this.canvas.isHoldingSpace && !this.canvas.noInteraction)
 			evt.preventDefault();
