@@ -1,5 +1,5 @@
 import process from 'node:process';
-import * as sass from 'sass';
+import type * as sass from 'sass';
 
 const dev = process.argv[2] === 'dev';
 

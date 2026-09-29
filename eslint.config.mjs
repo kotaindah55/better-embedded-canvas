@@ -12,6 +12,10 @@ const ignored = [
 	'**/*.{js,mjs}'
 ];
 
+const obsidianGlobals = {
+	i18next: 'readonly'
+};
+
 const mainLintConfig = {
 	files: [
 		'**/*.{ts,mts}'
@@ -39,8 +43,9 @@ const mainLintConfig = {
 		'no-undef': 'off',
 		'no-prototype-builtins': 'off',
 		'no-cond-assign': 'off',
-		'@typescript-eslint/no-empty-function': 'off',
 		'@typescript-eslint/await-thenable': 'off',
+		'@typescript-eslint/restrict-template-expressions': 'off',
+		'@typescript-eslint/no-empty-function': 'off',
 		'@typescript-eslint/no-unsafe-argument': 'off',
 		'@typescript-eslint/no-unsafe-assignment': 'off',
 		'@typescript-eslint/no-unsafe-member-access': 'off',
@@ -69,7 +74,11 @@ const obsidianLintConfig = {
 	extends: [
 		...obsidianmdlint.configs.recommended
 	],
+	languageOptions: {
+		globals: obsidianGlobals
+	},
 	rules: {
+		'@typescript-eslint/restrict-template-expressions': 'off',
 		'obsidianmd/ui/sentence-case': [
 			'error', { brands: [
 				'Better Embedded Canvas',
