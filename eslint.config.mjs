@@ -72,12 +72,16 @@ const obsidianLintConfig = {
 	rules: {
 		'obsidianmd/ui/sentence-case': [
 			'error', { brands: [
-				'Mainstream Icons'
+				'Better Embedded Canvas',
+				'“Space”',
+				'“Settings → Core plugins”'
 			]}
 		],
 		'obsidianmd/ui/sentence-case-locale-module': [
 			'error', { brands: [
-				'Mainstream Icons'
+				'Better Embedded Canvas',
+				'“Space”',
+				'“Settings → Core plugins”'
 			]}
 		]
 	}
