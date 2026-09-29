@@ -140,8 +140,10 @@ export function trackPointer(startEvt: PointerEvent, handlers: {
 	let { win } = startEvt,
 		abortController = new AbortController();
 
-	let started = false,
+	let started = startThreshold === 0,
 		startPoint = pointerToPoint(startEvt);
+
+	if (started) handlers.start?.();
 
 	function dispose(): void {
 		abortController.abort();
