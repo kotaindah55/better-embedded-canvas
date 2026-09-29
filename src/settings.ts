@@ -45,6 +45,11 @@ export class BetterEmbeddedCanvasSettingTab extends PluginSettingTab {
 		this.plugin = plugin;
 	}
 
+	public override renderTab(): void {
+		super.renderTab();
+		this.plugin.settingManager.defer(true);
+	}
+
 	public override setControlValue<K extends BetterEmbeddedCanvasSettingKey>(
 		key: K,
 		value: BetterEmbeddedCanvasSettings[K]
