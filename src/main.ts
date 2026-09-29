@@ -9,8 +9,7 @@ import {
 import { CanvasEmbedComponent } from './embed';
 import { CanvasCacheManager } from './cache';
 import { getInternalPlugin, isPluginEnabled, replaceEmbedCreator } from './utils';
-import { patchCanvasEditor, patchInternalLinkEditorSuggest } from './patch';
-import { discardAllCanvasEmbeds } from './store';
+import { patchCanvasEditor, patchInternalLinkEditorSuggest, patchMarkdownEmdedCreator } from './patch';
 import { noticeCanvasIsDisabled, noticeReloadAfterDisable, noticeRestartApp } from './notice';
 import { CanvasChooserModal } from './chooser-modal';
 import { hookCanvasEditor } from './hook';
@@ -40,13 +39,15 @@ export class BetterEmbeddedCanvasPlugin extends Plugin {
 	public constructor(app: App, manifest: PluginManifest) {
 		super(app, manifest);
 
-		this.builtinCanvasEmbedCreator = null;
-		this.isAdvancedCanvasEnabled = false;
 		this.settingManager = this.addChild(new SettingManager(this));
 		this.canvasCache = this.addChild(new CanvasCacheManager(app));
 		this.canvasChooser = new CanvasChooserModal(this);
 		this.settings = this.settingManager.proxify();
 		this.settingTab = new BetterEmbeddedCanvasSettingTab(this);
+
+		this.builtinCanvasEmbedCreator = null;
+		this.isAdvancedCanvasEnabled = false;
+		patchMarkdownEmdedCreator(this);
 	}
 
 	public override async onload(): Promise<void> {

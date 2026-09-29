@@ -2,6 +2,7 @@ import { around, dedupe } from 'monkey-around';
 import {
 	type InternalLinkEditorSuggest,
 	type InternalLinkSuggestManager,
+	Component,
 	Platform,
 	renderMatches,
 	setIcon
@@ -151,6 +152,48 @@ export function patchCanvasEditor(plugin: BetterEmbeddedCanvasPlugin): void {
 		updateSelection: oldFn => dedupe(plugin.manifest.id, oldFn, function (this: Canvas, selectCb) {
 			if (this.noInteraction) return;
 			oldFn.call(this, selectCb);
+		})
+	}));
+}
+
+export function patchMarkdownEmdedCreator(plugin: BetterEmbeddedCanvasPlugin): void {
+	let embedCreators = plugin.app.embedRegistry.embedByExtension;
+	if (!embedCreators.md) return;
+
+	// Originally, canvas is not embeddable. Therefore, any embeds inside
+	// any canvas will always have their embedding depth reset to 1.
+	//
+	// While Obsidian already limits embedding depth to 5, that limitting
+	// method is ineffective for embeds within embedded canvas. That is
+	// because that limitting method relies solely on EmbedContext.depth,
+	// which in this case, unfortunately, has been reset by the canvas.
+	//
+	// To overcome this issue, we need to manually set the embedding depth by
+	// tracking nearest containing canvas/markdown embed.
+	plugin.register(around(embedCreators, {
+		md: oldCreator => dedupe(plugin.manifest.id, oldCreator, (ctx, file, subpath?) => {
+			let embed = oldCreator(ctx, file, subpath),
+				listener = new Component();
+
+			function ensureDepth(): void {
+				let depth = store.getEmbedDepth(ctx.containerEl);
+				// If the depth is greater than the depth of nearest containing canvas,
+				// then it has not been reset.
+				if (depth !== null && depth >= ctx.depth) ctx.depth = depth + 1;
+				store.cacheEmbedDepth(ctx.containerEl, ctx.depth);
+			}
+			
+			// containerEl has not inserted into DOM yet. Wait until it is loaded.
+			listener.onload = () => {
+				if (ctx.containerEl.isShown()) {
+					ensureDepth();
+				} else {
+					ctx.containerEl.onNodeInserted(ensureDepth, true);
+				}
+			};
+
+			embed.addChild(listener);
+			return embed;
 		})
 	}));
 }
