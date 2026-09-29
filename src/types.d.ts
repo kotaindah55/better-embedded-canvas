@@ -1,8 +1,8 @@
-import type { CanvasData } from 'obsidian/canvas';
+import type { CanvasData, NodeType } from 'obsidian/canvas';
 import type _i18next from 'i18next';
 
 declare global {
-	var i18next: typeof _i18next;
+	const i18next: typeof _i18next;
 }
 
 declare module 'obsidian' {
@@ -61,7 +61,7 @@ declare module 'obsidian' {
 	/**
 	 * Bounding box interface.
 	 */
-	interface CanvasBBox {
+	interface BBox {
 		maxX: number;
 		maxY: number;
 		minX: number;
@@ -74,7 +74,7 @@ declare module 'obsidian' {
 	 * 
 	 * @typeonly
 	 */
-	class CanvasEditor {
+	class Canvas {
 		canvasControlsEl: HTMLElement;
 		canvasEl: HTMLElement;
 		canvasRect: CanvasRect;
@@ -97,15 +97,15 @@ declare module 'obsidian' {
 		noInteraction?: boolean;
 		quickSettingsButton: HTMLElement;
 		undoBtnEl: HTMLElement;
-		view: CanvasEditorOwner;
+		view: CanvasOwner;
 		/**
 		 * Wraps `canvasEl`.
 		 */
 		wrapperEl: HTMLElement;
 		zoomToFitQueued: boolean;
-		constructor(view: CanvasEditorOwner);
+		constructor(view: CanvasOwner);
 		/**
-		 * Clear `CanvasEditor` from its content without unregister any of global
+		 * Clear `Canvas` from its content without unregister any of global
 		 * event handlers.
 		 * 
 		 * Use `unload()` to completely unload the canvas.
@@ -124,7 +124,7 @@ declare module 'obsidian' {
 		 */
 		handleMoverPointerdown(evt: PointerEvent): void;
 		/**
-		 * Initialize `CanvasEditor`.
+		 * Initialize `Canvas`.
 		 */
 		load(): void;
 		/**
@@ -152,6 +152,10 @@ declare module 'obsidian' {
 		 * Run when the canvas is being scrolled.
 		 */
 		onWheel(evt: WheelEvent): void;
+		/**
+		 * Forcibly record current canvas state to the editing history.
+		 */
+		overrideHistory(): void;
 		/**
 		 * Pan canvas by given length.
 		 */
@@ -181,7 +185,7 @@ declare module 'obsidian' {
 		 */
 		setReadonly(readonly: boolean): void;
 		/**
-		 * Clear `CanvasEditor` from its content and unregister global event
+		 * Clear `Canvas` from its content and unregister global event
 		 * handlers.
 		 */
 		unload(): void;
@@ -195,15 +199,62 @@ declare module 'obsidian' {
 		/**
 		 * Zoom canvas to the given bounding box.
 		 */
-		zoomToBbox(bBox: CanvasBBox): void;
+		zoomToBbox(bBox: BBox): void;
 		zoomToSelection(): void;
 	}
 
-	interface CanvasEditorOwner {
-		app: App;
-		canvas: CanvasEditor;
+	/**
+	 * Canvas node that displays embedded file.
+	 * 
+	 * @typeonly
+	 */
+	class CanvasFileNode extends CanvasPreviewNode {
+		file: TFile | null;
+		filePath: string;
+		subpath: string;
+		onFileFocus(): void;
+		updateNodeLabel(label: string): void;
+	}
+
+	/**
+	 * Base class of non-group canvas node.
+	 * 
+	 * @typeonly
+	 */
+	abstract class CanvasItemNode extends CanvasNode {
+		contentEl: HTMLElement;
+		placeholderEl: HTMLElement;
+	}
+
+	/**
+	 * Base class of all canvas nodes.
+	 * 
+	 * @typeonly
+	 */
+	abstract class CanvasNode {
+		canvas: Canvas;
+		id: string;
+		unknownData: CanvasNodeUnknownData;
+		get isFocused(): boolean;
 		/**
-		 * Element that contains `CanvasEditor`.
+		 * Get bounding box of this node.
+		 */
+		getBBox(): BBox;
+		/**
+		 * Render node content.
+		 */
+		render(): void;
+		/**
+		 * Resize node.
+		 */
+		resize(newSize: Size): void;
+	}
+
+	interface CanvasOwner {
+		app: App;
+		canvas: Canvas;
+		/**
+		 * Element that contains `Canvas`.
 		 */
 		contentEl: HTMLElement;
 		/**
@@ -215,15 +266,6 @@ declare module 'obsidian' {
 		saveLocalData(): void;
 	}
 
-	/** @typeonly */
-	abstract class CanvasNode {
-		id: string;
-		/**
-		 * Get bounding box of this node.
-		 */
-		getBBox(): CanvasBBox;
-	}
-
 	type CanvasPlugin = InternalPlugin<'canvas'>;
 
 	/** @typeonly */
@@ -231,7 +273,17 @@ declare module 'obsidian' {
 		id: 'canvas';
 	}
 
-	interface CanvasRect extends CanvasBBox {
+	/**
+	 * Canvas node that manage lifecycle of `Component` instance attached
+	 * into. Currently, it is the base class for text node and file node.
+	 * 
+	 * @typeonly
+	 */
+	abstract class CanvasPreviewNode extends CanvasItemNode {
+		child?: Component | null | undefined;
+	}
+
+	interface CanvasRect extends BBox {
 		cx: number;
 		cy: number;
 		height: number;
@@ -240,9 +292,17 @@ declare module 'obsidian' {
 		width: number;
 	}
 
+	/**
+	 * Non-geometric node data attached into `CanvasNode` instance.
+	 */
+	interface CanvasNodeUnknownData extends Record<string, unknown> {
+		id: string;
+		type: NodeType;
+	}
+
 	/** @typeonly */
-	class CanvasView extends TextFileView implements CanvasEditorOwner {
-		canvas: CanvasEditor;
+	class CanvasView extends TextFileView implements CanvasOwner {
+		canvas: Canvas;
 		plugin: CanvasPluginInstance;
 		saveLocalData(): void;
 		setViewData(data: string, clear: boolean): void;
@@ -330,7 +390,7 @@ declare module 'obsidian' {
 	interface EmbedContext {
 		app: App;
 		containerEl: HTMLElement;
-		depth?: number | undefined;
+		depth: number;
 		displayMode?: boolean | undefined;
 		linktext?: string | undefined;
 		showInline?: boolean | undefined;
@@ -341,11 +401,11 @@ declare module 'obsidian' {
 	/**
 	 * Function that returns an `EmbedComponent`.
 	 */
-	type EmbedCreator = (
+	type EmbedCreator<T extends EmbedComponent = EmbedComponent> = (
 		context: EmbedContext,
 		file: TFile,
 		subpath?: string
-	) => EmbedComponent;
+	) => T;
 
 	/**
 	 * Manages embeds registered under file extensions.
@@ -453,7 +513,7 @@ declare module 'obsidian' {
 		addButton(label: string, onClick: (evt: PointerEvent) => void): this;
 	}
 
-	type PageSize =
+	type PageSizeType =
 		| 'A3'
 		| 'A4'
 		| 'A5'
@@ -466,7 +526,7 @@ declare module 'obsidian' {
 		 * Include file name as title.
 		 */
 		includeName?: boolean;
-		pageSize: PageSize;
+		pageSize: PageSizeType;
 		landscape: boolean;
 		/**
 		 * `0` for default, `1` for none, and `2` for minimal.
@@ -490,6 +550,15 @@ declare module 'obsidian' {
 	class Runnable {
 		isCancelled(): boolean;
 		isRunning(): boolean;
+	}
+
+	interface SettingTab {
+		renderTab(): void;
+	}
+
+	interface Size {
+		width: number;
+		height: number;
 	}
 
 	interface SuggestResult {
@@ -531,6 +600,13 @@ declare module 'obsidian' {
 		 */
 		rebuildView(): Promise<void>;
 	}
+}
+
+declare module 'obsidian/canvas' {
+	/**
+	 * Canvas node type.
+	 */
+	type NodeType = 'text' | 'file' | 'link' | 'group';
 }
 
 export {}
