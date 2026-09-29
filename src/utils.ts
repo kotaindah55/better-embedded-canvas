@@ -6,7 +6,8 @@ import type {
 } from 'obsidian/canvas';
 import type {
 	App,
-	CanvasEditor,
+	Canvas,
+	EmbedComponent,
 	EmbedCreator,
 	InternalPlugin,
 	InternalPluginId,
@@ -37,7 +38,7 @@ export function defer(fn: () => unknown): void {
  * 
  * @returns Previously registered `EmbedCreator` if any.
  */
-export function replaceEmbedCreator(app: App, ext: string, creator: EmbedCreator): EmbedCreator | null {
+export function replaceEmbedCreator<T extends EmbedComponent>(app: App, ext: string, creator: EmbedCreator<T>): EmbedCreator<T> | null {
 	let reg = app.embedRegistry,
 		oldCreator = reg.embedByExtension[ext] ?? null;
 
@@ -46,7 +47,7 @@ export function replaceEmbedCreator(app: App, ext: string, creator: EmbedCreator
 	reg.unregisterExtension(ext);
 	reg.registerExtension(ext, creator);
 
-	return oldCreator;
+	return oldCreator as EmbedCreator<T> | null;
 }
 
 /**
@@ -221,9 +222,9 @@ export function lockEvent(evt: Event): void {
  * Set updated `CanvasRect` to `canvasRect` property using current
  * wrapper dimension.
  * 
- * @param canvas `CanvasEditor` whose `canvasRect` property to be updated.
+ * @param canvas `Canvas` whose `canvasRect` property to be updated.
  */
-export function ensureCanvasRect(canvas: CanvasEditor): void {
+export function ensureCanvasRect(canvas: Canvas): void {
 	let { wrapperEl } = canvas,
 		wrapperRect = wrapperEl.getBoundingClientRect();
 

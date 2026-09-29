@@ -1,13 +1,13 @@
-import { type CanvasEditorOwner, Platform } from './obsidian';
-import { CanvasEditor } from './hook';
+import { type CanvasOwner, Platform } from './obsidian';
+import { Canvas } from './hook';
 
 /**
- * Get read-only `CanvasEditor`, preconfigured for embed.
+ * Get read-only `Canvas`, preconfigured for embed.
  * 
- * @param owner Object that implements `CanvasEditorOwner`.
+ * @param owner Object that implements `CanvasOwner`.
  */
-export function getCanvasRenderer(owner: CanvasEditorOwner): CanvasEditor {
-	let renderer = new CanvasEditor(owner);
+export function getCanvasRenderer(owner: CanvasOwner): Canvas {
+	let renderer = new Canvas(owner);
 
 	// Hide quick settings button to prevent user from reverting read-only
 	// state.

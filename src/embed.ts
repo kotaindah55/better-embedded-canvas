@@ -1,8 +1,8 @@
 import type { CanvasData } from 'obsidian/canvas';
 import {
 	type App,
-	type CanvasEditor,
-	type CanvasEditorOwner,
+	type Canvas,
+	type CanvasOwner,
 	type CanvasPluginInstance,
 	type EmbedComponent,
 	type EmbedContext,
@@ -43,9 +43,9 @@ function insideCanvasNode(el: HTMLElement): boolean {
 /**
  * Wrapper that manages embedded canvas' lifecycle.
  */
-export class CanvasEmbedComponent extends Component implements EmbedComponent, CanvasEditorOwner {
+export class CanvasEmbedComponent extends Component implements EmbedComponent, CanvasOwner {
 	public readonly app: App;
-	public readonly canvas: CanvasEditor;
+	public readonly canvas: Canvas;
 	public readonly contentEl: HTMLElement;
 	public readonly plugin: CanvasPluginInstance;
 	public readonly file: TFile;
@@ -187,7 +187,7 @@ export class CanvasEmbedComponent extends Component implements EmbedComponent, C
 				landscape
 			} = exportSettings;
 
-			let pageWidth = landscape ? PageSizes[pageType].height : PageSizes[pageType].width,
+			let pageWidth = landscape ? PageSize[pageType].height : PageSize[pageType].width,
 				inlineMargin = marginType == '0' ? DEFAULT_PAGE_MARGIN : 0,
 				inlinePadding = parseInt(markdownEl.getCssPropertyValue('padding-inline').replace('px', ''));
 

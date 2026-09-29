@@ -1,6 +1,6 @@
 import type {
 	App,
-	CanvasEditor as _CanvasEditor,
+	Canvas as _Canvas,
 	CanvasView as _CanvasView,
 	InternalLinkEditorSuggest,
 	InternalLinkSuggestManager,
@@ -32,17 +32,17 @@ function isInternalLinkSuggestManager(obj: unknown): obj is InternalLinkSuggestM
 }
 
 /**
- * Hook and store `CanvasView` and `CanvasEditor` constructors.
+ * Hook and store `CanvasView` and `Canvas` constructors.
  */
 export function hookCanvasEditor(app: App): void {
 	// Hooking it from view registry can trigger Advanced Canvas patching on
-	// CanvasView and CanvasEditor early, with the condition that Advanced
+	// CanvasView and Canvas early, with the condition that Advanced
 	// Canvas has already attached watcher to the registered view creator.
 	let canvasViewCreator = app.viewRegistry.getViewCreatorByType('canvas') ?? app.internalPlugins.getPluginById('canvas').views.canvas,
 		canvasView = canvasViewCreator(mockLeaf(app));
 
 	CanvasView = canvasView.constructor as typeof CanvasView;
-	CanvasEditor = canvasView.canvas.constructor as typeof CanvasEditor;
+	Canvas = canvasView.canvas.constructor as typeof Canvas;
 }
 
 /**
@@ -60,8 +60,8 @@ export function hookInternalLinkEditorSuggest(app: App): InternalLinkEditorSugge
 	return null;
 }
 
+export let Canvas: typeof _Canvas;
+export type Canvas = _Canvas;
+
 export let CanvasView: typeof _CanvasView;
 export type CanvasView = _CanvasView;
-
-export let CanvasEditor: typeof _CanvasEditor;
-export type CanvasEditor = _CanvasEditor;

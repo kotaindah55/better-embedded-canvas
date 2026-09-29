@@ -1,12 +1,9 @@
-import type { PageSize } from './obsidian';
+import type { PageSizeType, Size } from './obsidian';
 
 /**
  * Page sizes in pixels at 96 dpi.
  */
-export const PageSizes: Record<PageSize, {
-	width: number,
-	height: number
-}> = {
+export const PageSize: Record<PageSizeType, Size> = {
 	A3: {
 		width: 1123,
 		height: 1587

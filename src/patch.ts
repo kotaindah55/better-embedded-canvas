@@ -6,7 +6,7 @@ import {
 	renderMatches,
 	setIcon
 } from './obsidian';
-import { CanvasEditor, hookInternalLinkEditorSuggest } from './hook';
+import { Canvas, hookInternalLinkEditorSuggest } from './hook';
 import { CanvasEmbedComponent } from './embed';
 import { ensureCanvasRect, lockEvent, trackPointer } from './utils';
 import { getComplexSuggestTemplate, getNodeSuggests } from './suggest';
@@ -21,19 +21,19 @@ const enum MouseButton {
 }
 
 /**
- * Patch `CanvasEditor` prototype. Unistalled automatically when
+ * Patch `Canvas` prototype. Unistalled automatically when
  * unloading the plugin.
  */
 export function patchCanvasEditor(plugin: BetterEmbeddedCanvasPlugin): void {
-	plugin.register(around(CanvasEditor.prototype, {
-		handleMoverPointerdown: oldFn => dedupe(plugin.manifest.id, oldFn, function (this: CanvasEditor, evt) {
+	plugin.register(around(Canvas.prototype, {
+		handleMoverPointerdown: oldFn => dedupe(plugin.manifest.id, oldFn, function (this: Canvas, evt) {
 			// Prevent interaction-disabled canvas from being panned using space
 			// key.
 			if (this.noInteraction) return;
 			oldFn.call(this, evt);
 		}),
 
-		onWheel: oldFn => dedupe(plugin.manifest.id, oldFn, function (this: CanvasEditor, evt) {
+		onWheel: oldFn => dedupe(plugin.manifest.id, oldFn, function (this: Canvas, evt) {
 			if (this.noInteraction) return;
 
 			oldFn.call(this, evt);
@@ -42,7 +42,7 @@ export function patchCanvasEditor(plugin: BetterEmbeddedCanvasPlugin): void {
 				evt.stopPropagation();
 		}),
 
-		onPointerdown: oldFn => dedupe(plugin.manifest.id, oldFn, function (this: CanvasEditor, evt) {
+		onPointerdown: oldFn => dedupe(plugin.manifest.id, oldFn, function (this: Canvas, evt) {
 			if (this.noInteraction) return;
 
 			if (this.view instanceof CanvasEmbedComponent) {
@@ -57,7 +57,7 @@ export function patchCanvasEditor(plugin: BetterEmbeddedCanvasPlugin): void {
 		}),
 
 		// Fully rewrite
-		onPriorityPointerdown: oldFn => dedupe(plugin.manifest.id, oldFn, function (this: CanvasEditor, evt) {
+		onPriorityPointerdown: oldFn => dedupe(plugin.manifest.id, oldFn, function (this: Canvas, evt) {
 			if (this.noInteraction || evt.pointerType != 'mouse') return;
 
 			// Because of the event in capturing phase, the order will be like this:
@@ -72,8 +72,8 @@ export function patchCanvasEditor(plugin: BetterEmbeddedCanvasPlugin): void {
 				let startPos = this.posFromEvt(evt);
 
 				store.setPannedCanvas(this);
-				this.setDragging(true);
 				evt.preventDefault();
+				this.setDragging(true);
 				
 				let abort = trackPointer(evt, {
 					move: evt => {
@@ -138,17 +138,17 @@ export function patchCanvasEditor(plugin: BetterEmbeddedCanvasPlugin): void {
 			}
 		}),
 
-		onPointermove: oldFn => dedupe(plugin.manifest.id, oldFn, function (this: CanvasEditor, evt) {
+		onPointermove: oldFn => dedupe(plugin.manifest.id, oldFn, function (this: Canvas, evt) {
 			if (this.noInteraction) return;
 			oldFn.call(this, evt);
 		}),
 
-		unload: oldFn => dedupe(plugin.manifest.id, oldFn, function (this: CanvasEditor) {
+		unload: oldFn => dedupe(plugin.manifest.id, oldFn, function (this: Canvas) {
 			oldFn.call(this);
 			store.removePannedCanvas(this);
 		}),
 
-		updateSelection: oldFn => dedupe(plugin.manifest.id, oldFn, function (this: CanvasEditor, selectCb) {
+		updateSelection: oldFn => dedupe(plugin.manifest.id, oldFn, function (this: Canvas, selectCb) {
 			if (this.noInteraction) return;
 			oldFn.call(this, selectCb);
 		})
