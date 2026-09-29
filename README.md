@@ -4,7 +4,7 @@
 
 Give your embedded canvas better display and interactivity.
 
-![embedded-canvas.png](./assests/embedded-canvas.png)
+![embedded-canvas.png](./assets/embedded-canvas.png)
 
 > [!NOTE]
 >
@@ -44,7 +44,7 @@ Give your embedded canvas better display and interactivity.
 
 ### Embed canvas in a note
 
-![embed-in-notes.gif](./assests/embed-in-notes.gif)
+![embed-in-notes.gif](./assets/embed-in-notes.gif)
 
 You can embed a canvas in a note using the same way as [embedding notes and other files][obsidian-help-embeds]. To do that, use internal link prefixed with an exclamation mark (`!`):
 
@@ -124,7 +124,7 @@ Searching and typing card id manually can be very inconvinient. Therefore, Bette
 
 #### Embed using hotkey and command
 
-![embed-command.gif](./assests/embed-command.gif)
+![embed-command.gif](./assets/embed-command.gif)
 
 You can embed a canvas or single card in a note via hotkey and command:
 - **Better Embedded Canvas: Embed canvas** to embed a canvas.
@@ -138,7 +138,7 @@ You can drag the title of an embedded canvas, then you can drop it on a tab head
 
 ### Embed a canvas in a canvas
 
-![embed-in-canvas.gif](./assests/embed-in-canvas.gif)
+![embed-in-canvas.gif](./assets/embed-in-canvas.gif)
 
 You can embed a canvas in another canvas using the same way as [adding a card from a note][obsidian-help-canvas-add-note-card].
 
@@ -158,7 +158,7 @@ You can also drag a canvas from the File explorer, or an embedded canvas from a 
 
 ### Preview a canvas
 
-![hover-preview.gif](./assests/hover-preview.gif)
+![hover-preview.gif](./assets/hover-preview.gif)
 
 You can preview a canvas by hovering the cursor over an internal link to the canvas in Editing view, File explorer, Search, and more. The behavior of the preview depends on [Page preview][obsidian-help-page-preview] plugin.
 
@@ -168,7 +168,7 @@ You can preview a canvas by hovering the cursor over an internal link to the can
 
 ### Interact with an embedded canvas
 
-![interaction.gif](./assests/interaction.gif)
+![interaction.gif](./assets/interaction.gif)
 
 You can interact with an embedded canvas the way [interacting with a canvas view][obsidian-help-canvas], with some limitations.
 
@@ -224,7 +224,7 @@ To open an embedded canvas in canvas view, select **Open canvas** (![lucide-maxi
 
 ### [Advanced Canvas][advanced-canvas] support
 
-![support-advanced-canvas.png](./assests/support-advanced-canvas.png)
+![support-advanced-canvas.png](./assets/support-advanced-canvas.png)
 
 Embedded canvas includes some of Advanced Canvas' notable features (you need to enable Advanced Canvas plugin):
 - Card and connection line (node and edge) styling.
