@@ -221,6 +221,13 @@ export function lockEvent(evt: Event): void {
 }
 
 /**
+ * Indicate that the element is inside canvas node.
+ */
+export function insideCanvasNode(el: HTMLElement): boolean {
+	return el.matches('.canvas-node *');
+}
+
+/**
  * Set updated `CanvasRect` to `canvasRect` property using current
  * wrapper dimension.
  * 
@@ -275,7 +282,7 @@ export function getEdgesFromNodes(nodes: Record<string, AllCanvasNodeData>, canv
 /**
  * Measure distance between two points.
  */
-function measureDistance(pointA: Point, pointB: Point): number {
+export function measureDistance(pointA: Point, pointB: Point): number {
 	return Math.hypot(pointA.x - pointB.x, pointA.y - pointB.y);
 }
 

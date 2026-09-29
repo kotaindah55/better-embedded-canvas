@@ -15,8 +15,8 @@ import {
 	setTooltip
 } from './obsidian';
 import { getCanvasRenderer } from './renderer';
-import { beingExportedAsPDF, getInternalPlugin, toPx } from './utils';
-import { DEFAULT_PAGE_MARGIN, PageSizes } from './page-sizes';
+import { beingExportedAsPDF, getInternalPlugin, insideCanvasNode, toPx } from './utils';
+import { DEFAULT_PAGE_MARGIN, PageSize } from './page-sizes';
 import type { BetterEmbeddedCanvasPlugin } from './main';
 import type { BetterEmbeddedCanvasSettingKey } from './settings';
 import { CanvasView } from './hook';
@@ -31,13 +31,6 @@ const MIN_CANVAS_HEIGHT = 300;
 const enum CanvasEmbedMode {
 	Canvas,
 	Markdown
-}
-
-/**
- * Indicate that the element is inside canvas node.
- */
-function insideCanvasNode(el: HTMLElement): boolean {
-	return el.matches('.canvas-node *');
 }
 
 /**
