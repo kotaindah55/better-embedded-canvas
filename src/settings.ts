@@ -103,7 +103,7 @@ export class BetterEmbeddedCanvasSettingTab extends PluginSettingTab {
 						name: t('setting.maxEmbedDepth.name'),
 						desc: t('setting.maxEmbedDepth.desc'),
 						control: {
-							type: 'number',
+							type: 'slider',
 							key: 'maxEmbedDepth',
 							min: 0,
 							max: 5,
