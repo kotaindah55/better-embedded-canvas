@@ -6,7 +6,7 @@ import {
 	type PluginManifest,
 	Plugin
 } from './obsidian';
-import { CanvasEmbedComponent } from './embed';
+import { CanvasEmbed } from './embed';
 import { CanvasCacheManager } from './cache';
 import { getInternalPlugin, isPluginEnabled, replaceEmbedCreator } from './utils';
 import { patchCanvasEditor, patchInternalLinkEditorSuggest, patchMarkdownEmdedCreator } from './patch';
@@ -19,7 +19,7 @@ import {
 	BetterEmbeddedCanvasSettingTab,
 	SettingManager
 } from './settings';
-import * as store from './store';
+import store from './store';
 
 const ADVANCED_CANVAS_PLUGIN_ID = 'advanced-canvas';
 
@@ -117,7 +117,7 @@ export class BetterEmbeddedCanvasPlugin extends Plugin {
 	}
 
 	private replaceCanvasEmbedCreator(): void {
-		this.builtinCanvasEmbedCreator = replaceEmbedCreator(this.app, 'canvas', CanvasEmbedComponent.create.bind(null, this));
+		this.builtinCanvasEmbedCreator = replaceEmbedCreator(this.app, 'canvas', CanvasEmbed.create.bind(null, this));
 	}
 
 	private handleInternalPluginChange<T extends InternalPluginId>(plugin: InternalPlugin<T>): void {

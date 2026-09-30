@@ -8,12 +8,12 @@ import {
 	setIcon
 } from './obsidian';
 import { Canvas, hookInternalLinkEditorSuggest } from './hook';
-import { CanvasEmbedComponent } from './embed';
+import { CanvasEmbed } from './embed';
 import { ensureCanvasRect, lockEvent, trackPointer } from './utils';
 import { getComplexSuggestTemplate, getNodeSuggests } from './suggest';
 import type { BetterEmbeddedCanvasPlugin } from './main';
 import { t } from './i18n';
-import * as store from './store';
+import store from './store';
 
 const enum MouseButton {
 	Left = 0,
@@ -39,14 +39,14 @@ export function patchCanvasEditor(plugin: BetterEmbeddedCanvasPlugin): void {
 
 			oldFn.call(this, evt);
 			// Prevent embedding note from being zoomed.
-			if (this.view instanceof CanvasEmbedComponent)
+			if (this.view instanceof CanvasEmbed)
 				evt.stopPropagation();
 		}),
 
 		onPointerdown: oldFn => dedupe(plugin.manifest.id, oldFn, function (this: Canvas, evt) {
 			if (this.noInteraction) return;
 
-			if (this.view instanceof CanvasEmbedComponent) {
+			if (this.view instanceof CanvasEmbed) {
 				// Prevent embedding canvas from dragging.
 				evt.stopPropagation();
 				// Update canvas rect dimension. Thus, selection can be performed from

@@ -1,90 +1,91 @@
 import type { CanvasData } from 'obsidian/canvas';
 import {
 	type App,
-	type Canvas,
-	type CanvasOwner,
-	type CanvasPluginInstance,
 	type EmbedComponent,
 	type EmbedContext,
 	type TAbstractFile,
 	type TFile,
 	Component,
 	Keymap,
-	MarkdownRenderer,
-	setIcon,
-	setTooltip
+	setIcon
 } from './obsidian';
-import { getCanvasRenderer } from './renderer';
-import { beingExportedAsPDF, getInternalPlugin, insideCanvasNode, toPx } from './utils';
-import { DEFAULT_PAGE_MARGIN, PageSize } from './page-sizes';
 import type { BetterEmbeddedCanvasPlugin } from './main';
-import type { BetterEmbeddedCanvasSettingKey } from './settings';
+import { beingExportedAsPDF, insideCanvasNode, onceElInserted, toPx } from './utils';
+import type { BetterEmbeddedCanvasSettingKey, BetterEmbeddedCanvasSettings } from './settings';
+import { DEFAULT_PAGE_MARGIN, PageSize } from './page-sizes';
 import { CanvasView } from './hook';
-import { t } from './i18n';
-import { renderStaticCanvas } from './static-canvas';
-import * as store from './store';
-
-/**
- * Minimum canvas height in px.
- */
-const MIN_CANVAS_HEIGHT = 300;
+import { CanvasEmbedInteractiveRenderer } from './renderers/interactive-renderer';
+import { CanvasEmbedStaticRenderer } from './renderers/static-renderer';
+import { CanvasEmbedMarkdownRenderer } from './renderers/markdown-renderer';
+import store from './store';
 
 const enum CanvasEmbedMode {
-	Interactive,
-	Static,
-	Markdown
+	Interactive = 'interactive',
+	Static = 'static',
+	Markdown  = 'markdown'
 }
 
 /**
- * Wrapper that manages embedded canvas' lifecycle.
+ * Wrapper that manages the lifecycle of embedded canvas.
  */
-export class CanvasEmbedComponent extends Component implements EmbedComponent, CanvasOwner {
+export class CanvasEmbed extends Component implements EmbedComponent {
 	public readonly app: App;
-	public readonly canvas: Canvas;
+	public readonly plugin: BetterEmbeddedCanvasPlugin;
 	public readonly containerEl: HTMLElement;
-	public readonly plugin: CanvasPluginInstance;
+	public readonly contentEl: HTMLElement;
+	public readonly headerEl: HTMLElement;
 	public readonly file: TFile;
-	public readonly ctx: EmbedContext;
 	public readonly subpath?: string | undefined;
-
-	/**
-	 * Indicates that the pointer is hovering over the embed.
-	 */
-	public isPointerOver: boolean;
-
-	private readonly becPlugin: BetterEmbeddedCanvasPlugin;
-	/**
-	 * Displays file name.
-	 */
-	private readonly headerEl: HTMLElement;
+	
+	private readonly ctx: EmbedContext;
 	private readonly headerInnerEl: HTMLElement;
-	private readonly canvasEl: HTMLElement;
-	private readonly staticEl: SVGSVGElement;
-	private readonly markdownEl: HTMLElement;
-	private readonly markdownPreviewEl: HTMLElement;
-	private readonly mainControlsEl: HTMLElement;
-	private readonly zoomControlsEl: HTMLElement;
-	private readonly openCanvasBtnEl: HTMLElement;
-	private readonly toggleInteractionBtnEl: HTMLElement;
-	private readonly resizeObserver: ResizeObserver;
 	/**
-	 * Notifies canvas height update.
+	 * Notifies canvas height and alias update.
 	 */
 	private readonly mutationObserver: MutationObserver;
+	
+	private mode: CanvasEmbedMode | null;
+	private renderer: CanvasEmbedRenderer | null;
 
-	private mode: CanvasEmbedMode;
-	/**
-	 * Controls lifecycle of the markdown-rendered node content.
-	 */
-	private child: Component;
-	private ensuringDepth: Promise<void> | null;
-
-	public get contentEl(): HTMLElement {
-		return this.canvasEl;
+	public get depth(): number {
+		return this.ctx.depth;
 	}
+
+	public set depth(n: number) {
+		this.ctx.depth = n;
+	}
+
+	private constructor(plugin: BetterEmbeddedCanvasPlugin, ctx: EmbedContext, file: TFile, subpath?: string) {
+		super();
+
+		this.app = plugin.app;
+		this.plugin = plugin;
+		this.ctx = ctx;
+		this.file = file;
+		this.subpath = subpath;
+		this.mutationObserver = new MutationObserver(this.onAliasChange.bind(this));
+
+		this.mode = null;
+		this.renderer = null;
+
+		this.containerEl = ctx.containerEl;
+		this.containerEl.addClass('canvas-embed', 'better-canvas-embed');
+		this.containerEl.toggleClass('inline-embed', ctx.showInline ?? false);
+		this.headerEl = createDiv('embed-title', el => {
+			el.createSpan('file-embed-icon', iconEl => setIcon(iconEl, 'lucide-layout-dashboard'));
+			el.setAttr('data-sub-header', '');
+			el.addEventListener('click', evt => void this.open(evt));
+			el.toggle(this.settings.showCanvasName);
+		});
+		this.headerInnerEl = this.headerEl.createSpan('embed-title-inner');
+		this.contentEl = this.containerEl.createDiv('embed-content');
+
+		if (this.isInternalEmbed()) this.containerEl.prepend(this.headerEl);
+	}
+
 	/**
-	 * Specific canvas node id that will be rendered. `null` means the whole
-	 * canvas is to be rendered instead.
+	 * Id that belongs to specific canvas node that will be rendered. `null`
+	 * means the whole canvas is to be rendered instead.
 	 */
 	private get nodeId(): string | null {
 		if (!this.subpath) return null;
@@ -93,196 +94,105 @@ export class CanvasEmbedComponent extends Component implements EmbedComponent, C
 			: this.subpath;
 	}
 
-	private constructor(becPlugin: BetterEmbeddedCanvasPlugin, ctx: EmbedContext, file: TFile, subpath?: string) {
-		super();
-		this.app = ctx.app;
-		this.plugin = getInternalPlugin(this.app, 'canvas').instance;
-		this.becPlugin = becPlugin;
-		this.ctx = ctx;
-		this.file = file;
-		this.subpath = subpath;
-		this.isPointerOver = false;
-		this.mode = CanvasEmbedMode.Interactive;
-		this.child = new Component();
-		this.ensuringDepth = null;
-		
-		this.containerEl = ctx.containerEl;
-		this.containerEl.addClass('canvas-embed', 'better-canvas-embed');
-		this.containerEl.toggleClass('inline-embed', ctx.showInline ?? false);
-		
-		this.headerEl = this.containerEl.createDiv('embed-title', el => {
-			el.createSpan('file-embed-icon', iconEl => setIcon(iconEl, 'lucide-layout-dashboard'));
-			el.setAttr('data-sub-header', '');
-			el.addEventListener('click', evt => void this.openOnClick(evt));
-			el.toggle(becPlugin.settings.showCanvasName);
-		});
-		this.headerInnerEl = this.headerEl.createSpan('embed-title-inner');
-
-		this.canvasEl = this.containerEl.createDiv('canvas-content');
-		this.staticEl = createSvg('svg', 'canvas-minimap');
-		this.markdownEl = createDiv('markdown-embed-content');
-		this.markdownPreviewEl = this.markdownEl.createDiv('markdown-preview-view markdown-rendered');
-
-		this.canvas = getCanvasRenderer(this);
-		this.zoomControlsEl = this.canvas.canvasControlsEl.firstElementChild as HTMLElement;
-		this.mainControlsEl = this.canvas.canvasControlsEl.createDiv({
-			cls: ['canvas-control-group', 'mod-raised'],
-			prepend: true,
-		});
-
-		this.resizeObserver = new ResizeObserver(this.canvas.onResize.bind(this.canvas));
-		this.mutationObserver = new MutationObserver(this.onAliasChange.bind(this));
-
-		// Button to open canvas fully.
-		this.openCanvasBtnEl = this.mainControlsEl.createDiv('canvas-control-item', itemEl => {
-			setIcon(itemEl, 'lucide-maximize-2');
-			setTooltip(itemEl, t('tooltipOpenCanvas'), { placement: 'left' });
-			itemEl.addEventListener('click', evt => void this.openOnClick(evt));
-		});
-
-		// Button to toggle interaction.
-		this.toggleInteractionBtnEl = this.mainControlsEl.createDiv('canvas-control-item', itemEl => {
-			setIcon(itemEl, 'pointer');
-			setTooltip(itemEl, t('tooltipDisableInteraction'), { placement: 'left' });
-			itemEl.addEventListener('click', this.handleInteractionBtnClick.bind(this));
-		});
-
-		// Show header in internal embed only, such as that in the editor.
-		if (!this.containerEl.hasClass('internal-embed'))
-			this.headerEl.detach();
+	public get settings(): BetterEmbeddedCanvasSettings {
+		return this.plugin.settings;
 	}
 
 	public override onload(): void {
-		this.canvas.load();
+		this.app.vault.on('modify', this.onModify.bind(this));
+		this.plugin.settingManager.on('settings-changed', this.onSettingsChange.bind(this));
 		this.attachDragHandler();
-		// Triggered each time a file has been modified.
-		this.registerEvent(this.app.vault.on('modify', this.handleModify.bind(this)));
-		// Triggered each time settings have been changed.
-		this.registerEvent(this.becPlugin.settingManager.on('settings-changed', this.handleSettingsChange.bind(this)));
-		// Triggered when the pointer enters the embed.
-		this.registerDomEvent(this.canvas.wrapperEl, 'pointerover', this.handlePointerEnter.bind(this));
-		// Triggered when the pointer leaves the embed.
-		this.registerDomEvent(this.canvas.wrapperEl, 'pointerleave', this.handlePointerLeave.bind(this));
-		// Triggered when the pointer leaves the embed.
-		this.registerDomEvent(this.contentEl.win, 'keydown', this.handleGlobalKeydown.bind(this));
-		// Store this embed.
+
+		this.mutationObserver.observe(this.containerEl, {
+			attributes: true,
+			attributeFilter: ['width', 'alt']
+		});
+
 		store.storeCanvasEmbed(this);
 
-		this.canvas.noInteraction = Boolean(this.app.loadLocalStorage(`${this.becPlugin.manifest.id}:no-interaction`) ?? true);
-		this.toggleInteraction(!this.canvas.noInteraction);
-
-		// Set embedded canvas width in exported PDF based on selected page
-		// size and margin. Thus, the content inside is aligned properly.
-		//
-		// That way, as a note is being exported, a new hidden `Window` is
-		// created to be used as pre-rendering container. However, the size of the
-		// `Window` does not match specified page size.
 		if (beingExportedAsPDF(this.containerEl) && !insideCanvasNode(this.containerEl)) {
-			// Get last configured settings.
-			let exportSettings = this.app.vault.getConfig('pdfExportSettings');
-			if (!exportSettings) return;
-
-			let bodyEl = this.containerEl.doc.body,
-				markdownEl = bodyEl.find(':scope > .print > .markdown-preview-view');
-
-			let {
-				pageSize: pageType,
-				margin: marginType,
-				landscape
-			} = exportSettings;
-
-			let pageWidth = landscape ? PageSize[pageType].height : PageSize[pageType].width,
-				inlineMargin = marginType == '0' ? DEFAULT_PAGE_MARGIN : 0,
-				inlinePadding = parseInt(markdownEl.getCssPropertyValue('padding-inline').replace('px', ''));
-
-			let canvasWidth = pageWidth - inlineMargin * 2 - inlinePadding * 2;
-			this.containerEl.setCssStyles({ width: toPx(canvasWidth) });
+			this.relayoutForPdf();
 		}
 	}
 
 	public override onunload(): void {
-		this.app.workspace.trigger('advanced-canvas:canvas-view-unloaded:before', this);
-
-		this.resizeObserver.disconnect();
 		this.mutationObserver.disconnect();
-		this.canvas.unload();
-
 		store.discardCanvasEmbed(this);
 	}
 
-	/**
-	 * Toggle user interaction on canvas, e.g. scroll, click, and touch.
-	 */
-	public toggleInteraction(enable: boolean): void {
-		this.canvas.deselectAll();
-		this.canvas.noInteraction = !enable;
-
-		// With interaction disabled, swiping over embedded canvas should scroll
-		// the embedding note. This class changes the value of the CSS property
-		// `touch-action` to `auto`. See styles/main.scss.
-		this.canvas.wrapperEl.toggleClass('mod-no-interaction', !enable);
-
-		// Show/hide zoom buttons.
-		this.zoomControlsEl.toggle(enable);
-		setIcon(this.toggleInteractionBtnEl, enable ? 'pointer' : 'pointer-off');
-		setTooltip(this.toggleInteractionBtnEl, t(enable ? 'tooltipDisableInteraction' : 'tooltipEnableInteraction'), { placement: 'left' });
-	}
-
-	// Dummy properties. Added to prevent `undefined`-related errors.
-	public requestSave(): void {}
-	public saveLocalData(): void {}
-
 	public async loadFile(): Promise<void> {
-		// Cache embedding depth.
-		let data = await this.app.vault.cachedRead(this.file);
+		let rawData = await this.app.vault.cachedRead(this.file);
+
 		if (this.containerEl.isShown()) {
 			this.ensureDepth();
-			await this.setData(data, true);
-		} else {
-			this.containerEl.onNodeInserted(() => {
-				this.ensureDepth();
-				void this.setData(data, true);
-			}, true);
+			await this.parse(rawData);
+		} else onceElInserted(this.containerEl, () => {
+			this.ensureDepth();
+			void this.parse(rawData);
+		}, this);
+	}
+
+	/**
+	 * Forcibly rerender the embed.
+	 * 
+	 * @param raw Replaces canvas raw data.
+	 */
+	public async reload(raw?: string): Promise<void> {
+		let rawData = raw ?? await this.app.vault.cachedRead(this.file);
+		await this.parse(rawData);
+	}
+
+	/**
+	 * Open canvas file on a tab.
+	 * 
+	 * @param evt Translates an event into the type of pane that should open.
+	 */
+	public async open(evt?: PointerEvent): Promise<void> {
+		let leaf = this.app.workspace.getLeaf(Keymap.isModEvent(evt));
+		await leaf.openFile(this.file);
+
+		// Select the node and zoom canvas to it.
+		if (this.nodeId && leaf.view instanceof CanvasView) {
+			let canvas = leaf.view.canvas;
+			let node = canvas.nodes.get(this.nodeId);
+
+			if (node) {
+				canvas.selectOnly(node);
+				canvas.zoomToSelection();
+			}
 		}
 	}
 
-	public async reload(): Promise<void> {
-		let data = await this.app.vault.cachedRead(this.file);
-		await this.setData(data, false);
+	public toggleInteraction(enable: boolean): void {
+		if (this.renderer instanceof CanvasEmbedInteractiveRenderer) {
+			this.renderer.toggleInteraction(enable);
+		}
 	}
 
 	/**
-	 * Set unserialized JSON data as `CanvasData`.
-	 * 
-	 * @param data Unserialized (stringified) JSON data.
-	 * @param firstLoad Set it to true if this is first data loading.
+	 * Parse canvas raw data and render the embed from it.
 	 */
-	private async setData(data: string, firstLoad: boolean): Promise<void> {
-		let nodeId = this.nodeId,
-			subHeader = '',
-			markdown = '',
-			serialized: CanvasData | null = null;
-
+	private async parse(raw: string): Promise<void> {
+		let nodeId = this.nodeId;
+		let subHeader = '';
+		let serialized: CanvasData = { nodes: [], edges: [] };
 		let mode = this.shouldBeStatic()
 			? CanvasEmbedMode.Static
 			: CanvasEmbedMode.Interactive;
 
-		// Discard previous markdown-rendered node content if any.
-		this.removeChild(this.child);
-		// Empty static canvas element.
-		this.staticEl.empty();
-
 		// Render single node / group.
 		if (nodeId !== null) {
-			let cache = this.becPlugin.canvasCache.getCache(this.file, data);
-			serialized = { nodes: [], edges: [] };
-
+			let cache = this.plugin.canvasCache.getCache(this.file, raw);
 			if (cache) {
 				let target = cache.nodes[nodeId];
+				Object.assign(serialized, cache.data);
+
 				if (target) {
+					subHeader = target.id;
+
 					if (target.type == 'group') {
 						let grouped = cache.groups[target.id];
-						if (!this.becPlugin.settings.embedGroupContentOnly)
+						if (!this.settings.embedGroupContentOnly)
 							serialized.nodes.push(target);
 						if (grouped) {
 							serialized.nodes.push(...Object.values(grouped.nodes));
@@ -294,31 +204,18 @@ export class CanvasEmbedComponent extends Component implements EmbedComponent, C
 					}
 					
 					else {
-						if (!this.becPlugin.settings.embedNodeContentOnly) {
-							serialized.nodes.push(target);
-						} else {
+						serialized.nodes.push(target);
+						if (this.settings.embedNodeContentOnly) {
 							// Rendered as markdown embed.
 							mode = CanvasEmbedMode.Markdown;
-							if (target.type == 'text') {
-								markdown = target.text;
-							} else if (target.type == 'file') {
-								// Only display clickable link for file node. User should embed file
-								// directly instead of using canvas as a middleman.
-								markdown = `[[${target.file}]]`;
-							} else {
-								markdown = target.url;
-							}
 						}
 					}
-
-					subHeader = target.id;
 				}
-				Object.assign(serialized, cache.data);
 			}
 		}
 
 		else try {
-			serialized = JSON.parse(data) as CanvasData;
+			serialized = JSON.parse(raw) as CanvasData;
 		} catch (err) {
 			console.error(err);
 		}
@@ -327,93 +224,69 @@ export class CanvasEmbedComponent extends Component implements EmbedComponent, C
 		if (subHeader != this.headerEl.getAttr('data-sub-header')) {
 			this.headerEl.setAttr('data-sub-header', subHeader);
 		}
-		
+
+		// Render the canvas.
 		this.setMode(mode);
 		this.updateHeader();
+		await this.renderer?.setData(serialized);
+	}
 
-		if (this.mode === CanvasEmbedMode.Interactive && serialized) {
-			this.canvas.setData(serialized);
-		} else {
-			this.canvas.clear();
+	/**
+	 * Set current embed mode.
+	 */
+	private setMode(mode: CanvasEmbedMode): void {
+		if (this.mode === mode) return;
+
+		if (this.renderer) {
+			this.removeChild(this.renderer);
+			this.renderer = null;
 		}
 
-		if (this.mode === CanvasEmbedMode.Static && serialized) {
-			renderStaticCanvas(serialized, this.staticEl);
-		}
+		this.mode = mode;
 
-		if (this.mode === CanvasEmbedMode.Markdown) {
-			// Reset rendered markdown on child unload.
-			this.child.register(() => this.markdownPreviewEl.empty());
-			this.addChild(this.child);
-			await MarkdownRenderer.render(this.app, markdown, this.markdownPreviewEl, this.ctx.sourcePath ?? '', this.child);
-		}
-
-		if (firstLoad) {
-			if (beingExportedAsPDF(this.containerEl) || this.containerEl.isShown()) {
-				this.initRender();
-			} else {
-				// Sometimes, `containerEl` is not immediately loaded into the DOM.
-				this.containerEl.onNodeInserted(this.initRender.bind(this), true);
+		switch (this.mode) {
+			case CanvasEmbedMode.Interactive: {
+				this.renderer = this.addChild(new CanvasEmbedInteractiveRenderer(this));
+				break;
 			}
-		} else if (this.mode === CanvasEmbedMode.Interactive) {
-			this.canvas.requestFrame();
-		}
-
-		// Let Advanced Canvas plugin run on top of this embed.
-		if (this.mode === CanvasEmbedMode.Interactive)
-			this.app.workspace.trigger('advanced-canvas:canvas-changed', this.canvas);
-	}
-
-	/**
-	 * Initialize canvas rendering.
-	 */
-	private initRender(): void {
-		this.updateHeader();
-		this.updateHeight();
-		this.canvas.zoomToFitQueued = true;
-		this.canvas.onResize();
-
-		// Start all observers at first load.
-		this.resizeObserver.observe(this.containerEl);
-		this.mutationObserver.observe(this.containerEl, {
-			attributes: true,
-			attributeFilter: ['width', 'alt']
-		});
-	}
-
-	/**
-	 * Open canvas individually at preferred tab.
-	 */
-	private async openOnClick(evt: PointerEvent): Promise<void> {
-		let leaf = this.app.workspace.getLeaf(Keymap.isModEvent(evt));
-		await leaf.openFile(this.file);
-
-		// Select the node and zoom canvas to it.
-		if (this.nodeId && leaf.view instanceof CanvasView) {
-			let canvas = leaf.view.canvas,
-				node = canvas.nodes.get(this.nodeId);
-
-			if (node) {
-				canvas.selectOnly(node);
-				canvas.zoomToSelection();
+			case CanvasEmbedMode.Static: {
+				this.renderer = this.addChild(new CanvasEmbedStaticRenderer(this));
+				break;
+			}
+			case CanvasEmbedMode.Markdown: {
+				this.renderer = this.addChild(new CanvasEmbedMarkdownRenderer(this));
+				break;
 			}
 		}
 	}
 
 	/**
-	 * Update embed title based on file name and link alias.
-	 */
-	private updateHeader(): void {
-		let alias = this.containerEl.getAttr('alt');
-		if (alias) {
-			if (this.headerInnerEl.getText() != alias) this.headerInnerEl.setText(alias);
-		} else {
-			let title = this.file.name,
-				subTitle = this.headerEl.getAttr('data-sub-header');
+	 * Set embedded canvas width in exported PDF based on selected page
+	 * size and margin. Thus, the content inside is aligned properly.
+	 *
+	 * That way, as a note is being exported, a new hidden `Window` is
+	 * created to be used as pre-rendering container. However, the size of the
+	 * `Window` does not match specified page size.
+	*/
+	private relayoutForPdf(): void {
+		// Get last configured settings.
+		let exportSettings = this.app.vault.getConfig('pdfExportSettings');
+		if (!exportSettings) return;
 
-			if (subTitle) title = `${title} > ${subTitle}`;
-			if (this.headerInnerEl.getText() != title) this.headerInnerEl.setText(title);
-		}
+		let bodyEl = this.containerEl.doc.body;
+		let markdownEl = bodyEl.find(':scope > .print > .markdown-preview-view');
+		let {
+			pageSize: pageType,
+			margin: marginType,
+			landscape
+		} = exportSettings;
+
+		let pageWidth = landscape ? PageSize[pageType].height : PageSize[pageType].width;
+		let inlineMargin = marginType == '0' ? DEFAULT_PAGE_MARGIN : 0;
+		let inlinePadding = parseInt(markdownEl.getCssPropertyValue('padding-inline').replace('px', ''));
+		let canvasWidth = pageWidth - inlineMargin * 2 - inlinePadding * 2;
+
+		this.containerEl.setCssStyles({ width: toPx(canvasWidth) });
 	}
 
 	/**
@@ -426,59 +299,51 @@ export class CanvasEmbedComponent extends Component implements EmbedComponent, C
 		// First value of specified dimension (e.g. "400" in "[[link-to-file|400x300]]")
 		// is stored as "width" attribute value.
 		let height = Number(this.containerEl.getAttr('width'));
-		this.canvasEl.setCssStyles({ height: height && height > MIN_CANVAS_HEIGHT
-			? toPx(height)
-			: toPx(MIN_CANVAS_HEIGHT)
+		let heightInPx = height ? toPx(height): '';
+		this.containerEl.setCssProps({
+			'--embedded-canvas-height': heightInPx,
+			'--embedded-canvas-minimap-height': heightInPx
 		});
 	}
 
 	/**
-	 * Set current embed mode.
+	 * Update embed title based on file name and link alias.
 	 */
-	private setMode(mode: CanvasEmbedMode): void {
-		if (this.mode === mode) return;
-		this.mode = mode;
-
-		let isInteractive = mode === CanvasEmbedMode.Interactive,
-			isStatic = mode === CanvasEmbedMode.Static,
-			isMarkdown = mode === CanvasEmbedMode.Markdown;
-
-		if (isInteractive) {
-			this.containerEl.append(this.canvasEl);
+	private updateHeader(): void {
+		const alias = this.containerEl.getAttr('alt');
+		if (alias) {
+			if (this.headerInnerEl.getText() != alias) this.headerInnerEl.setText(alias);
 		} else {
-			this.canvasEl.detach();
-		}
+			const subTitle = this.headerEl.getAttr('data-sub-header');
+			let title = this.file.name;
 
-		if (isStatic) {
-			this.containerEl.append(this.staticEl);
-		} else {
-			this.staticEl.detach();
+			if (subTitle) title = `${title} > ${subTitle}`;
+			if (this.headerInnerEl.getText() != title) this.headerInnerEl.setText(title);
 		}
-
-		if (isMarkdown) {
-			this.containerEl.append(this.markdownEl);
-		} else {
-			this.markdownEl.detach();
-		}
-
-		this.containerEl.toggleClass('markdown-embed', isMarkdown);
-		this.headerEl.toggleClass('markdown-embed-title', isMarkdown);
 	}
 
 	/**
 	 * Ensure correct embedding depth of this embed.
 	 */
 	private ensureDepth(): void {
-		let depth = store.getEmbedDepth(this.containerEl);
-		if (depth !== null && depth >= this.ctx.depth) this.ctx.depth = depth + 1;
-		store.cacheEmbedDepth(this.containerEl, this.ctx.depth);
+		const depth = store.getEmbedDepth(this.containerEl);
+		if (depth !== null && depth >= this.depth) this.depth = depth + 1;
+		store.cacheEmbedDepth(this.containerEl, this.depth);
 	}
 
+	/**
+	 * Whether the embed should render static canvas depending on user
+	 * settings.
+	 */
 	private shouldBeStatic(): boolean {
 		return (
-			this.ctx.depth > this.becPlugin.settings.maxEmbedDepth ||
-			insideCanvasNode(this.containerEl) && !this.becPlugin.settings.nestedCanvas
+			this.depth > this.settings.maxEmbedDepth ||
+			insideCanvasNode(this.containerEl) && !this.settings.nestedCanvas
 		);
+	}
+
+	private isInternalEmbed(): boolean {
+		return this.containerEl.hasClass('internal-embed');
 	}
 
 	/**
@@ -487,9 +352,9 @@ export class CanvasEmbedComponent extends Component implements EmbedComponent, C
 	 */
 	private attachDragHandler(): void {
 		this.app.dragManager.handleDrag(this.headerEl, evt => {
-			let linkText = this.ctx.linktext,
-				sourcePath = this.ctx.sourcePath ?? '',
-				source = this.becPlugin.manifest.id;
+			const linkText = this.ctx.linktext;
+			const sourcePath = this.ctx.sourcePath ?? '';
+			const source = this.plugin.manifest.id;
 
 			return linkText
 				? this.app.dragManager.dragLink(evt, linkText, sourcePath, undefined, source)
@@ -497,28 +362,26 @@ export class CanvasEmbedComponent extends Component implements EmbedComponent, C
 		});
 	}
 
+	/**
+	 * Handle alias change.
+	 */
 	private onAliasChange(): void {
 		this.updateHeader();
 		this.updateHeight();
 	}
 
-	private async handleModify(aFile: TAbstractFile): Promise<void> {
-		if (aFile != this.file) return;
-		// Update the canvas when the file is modified.
-		let data = await this.app.vault.cachedRead(this.file);
-		await this.setData(data, false);
+	/**
+	 * Handle file modify event. Will reload the embed if the file of this
+	 * embed is that being modified.
+	 */
+	private onModify(aFile: TAbstractFile): void {
+		if (aFile === this.file) void this.reload();
 	}
 
-	private handleInteractionBtnClick(): void {
-		let enable = this.canvas.noInteraction ?? false;
-		store.iterateCanvasEmbeds(embed => embed.toggleInteraction(enable));
-		// Save current configuration to the local storage.
-		this.app.saveLocalStorage(`${this.becPlugin.manifest.id}:no-interaction`, !enable);
-	}
-
-	private handleSettingsChange(changed: Set<BetterEmbeddedCanvasSettingKey>): void {
-		if (changed.has('showCanvasName')) {
-			let show = this.becPlugin.settings.showCanvasName;
+	private onSettingsChange(changed: Set<BetterEmbeddedCanvasSettingKey>): void {
+		// Only internal embed that should have title.
+		if (changed.has('showCanvasName') && this.isInternalEmbed()) {
+			const show = this.settings.showCanvasName;
 			this.headerEl.toggle(show);
 		}
 
@@ -531,25 +394,18 @@ export class CanvasEmbedComponent extends Component implements EmbedComponent, C
 		}
 	}
 
-	private handlePointerEnter(): void {
-		this.isPointerOver = true;
+	public static create(plugin: BetterEmbeddedCanvasPlugin, ctx: EmbedContext, file: TFile, subpath?: string): CanvasEmbed {
+		return new CanvasEmbed(plugin, ctx, file, subpath);
 	}
+}
 
-	private handlePointerLeave(): void {
-		this.isPointerOver = false;
-	}
-
-	private handleGlobalKeydown(evt: KeyboardEvent): void {
-		if (this.mode !== CanvasEmbedMode.Interactive || !this.becPlugin.settings.spaceKeyToPan || !this.isPointerOver) return;
-		// Prevent scrolling when using space key to pan embedded canvas.
-		if (evt.key == ' ' && this.canvas.isHoldingSpace && !this.canvas.noInteraction)
-			evt.preventDefault();
-	}
-
+/**
+ * `CanvasEmbed` delegates its rendering task to `CanvasEmbedRenderer`.
+ */
+export interface CanvasEmbedRenderer extends Component {
+	owner: CanvasEmbed;
 	/**
-	 * Implementation of `EmbedCreator`.
+	 * Set serialized `CanvasData` and render it.
 	 */
-	public static create(becPlugin: BetterEmbeddedCanvasPlugin, ctx: EmbedContext, file: TFile, subpath?: string): CanvasEmbedComponent {
-		return new CanvasEmbedComponent(becPlugin, ctx, file, subpath);
-	}
+	setData(data: CanvasData): Promise<void> | void;
 }
