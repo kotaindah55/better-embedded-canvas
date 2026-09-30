@@ -66,21 +66,21 @@ export function patchCanvasEditor(plugin: BetterEmbeddedCanvasPlugin): void {
 			// - Then, embedded canvas is stored subsequently, replacing the parent.
 			// - Panning will only occur on the stored canvas, In this case, it is
 			//   the embedded one.
-			
+
 			// Panning using middle button.
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison -- more compact and readable
 			if (evt.button == MouseButton.Middle) {
-				let startPos = this.posFromEvt(evt);
+				const startPos = this.posFromEvt(evt);
 
 				store.setPannedCanvas(this);
 				evt.preventDefault();
 				this.setDragging(true);
-				
-				let abort = trackPointer(evt, {
+
+				const abort = trackPointer(evt, {
 					move: evt => {
 						if (store.isPannedCanvas(this)) {
 							// Pan the canvas to the current pointer position.
-							let currPos = this.posFromEvt(evt);
+							const currPos = this.posFromEvt(evt);
 							this.panBy(startPos.x - currPos.x, startPos.y - currPos.y);
 						} else {
 							// Do not pan the outer canvas if the most inner one is being panned.
@@ -99,16 +99,16 @@ export function patchCanvasEditor(plugin: BetterEmbeddedCanvasPlugin): void {
 					}
 				}, 0);
 			}
-			
+
 			// Panning using right button.
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison -- more compact and readable
 			if (evt.button == MouseButton.Right || Platform.isMacOS && evt.button == MouseButton.Middle && evt.ctrlKey) {
-				let startPos = this.posFromEvt(evt);
+				const startPos = this.posFromEvt(evt);
 
 				store.setPannedCanvas(this);
 				evt.preventDefault();
 
-				let abort = trackPointer(evt, {
+				const abort = trackPointer(evt, {
 					// Do not pan until the pointer reaches the threshold.
 					start: () => {
 						this.setDragging(true);
@@ -116,7 +116,7 @@ export function patchCanvasEditor(plugin: BetterEmbeddedCanvasPlugin): void {
 
 					move: evt => {
 						if (store.isPannedCanvas(this)) {
-							let currPos = this.posFromEvt(evt);
+							const currPos = this.posFromEvt(evt);
 							this.panBy(startPos.x - currPos.x, startPos.y - currPos.y);
 						} else {
 							abort();
@@ -125,13 +125,13 @@ export function patchCanvasEditor(plugin: BetterEmbeddedCanvasPlugin): void {
 
 					cleanup: () => {
 						store.removePannedCanvas(this);
-						
+
 						// Do not open context menu once panning is ended.
-						let timer = evt.win.setTimeout(() => {
+						const timer = evt.win.setTimeout(() => {
 							this.wrapperEl.removeEventListener('contextmenu', lockEvent, true);
 							evt.win.clearTimeout(timer);
 						}, 0);
-						
+
 						this.wrapperEl.addEventListener('contextmenu', lockEvent, true);
 						this.setDragging(false);
 					}
@@ -157,7 +157,7 @@ export function patchCanvasEditor(plugin: BetterEmbeddedCanvasPlugin): void {
 }
 
 export function patchMarkdownEmdedCreator(plugin: BetterEmbeddedCanvasPlugin): void {
-	let embedCreators = plugin.app.embedRegistry.embedByExtension;
+	const embedCreators = plugin.app.embedRegistry.embedByExtension;
 	if (!embedCreators.md) return;
 
 	// Originally, canvas is not embeddable. Therefore, any embeds inside
@@ -172,17 +172,17 @@ export function patchMarkdownEmdedCreator(plugin: BetterEmbeddedCanvasPlugin): v
 	// tracking nearest containing canvas/markdown embed.
 	plugin.register(around(embedCreators, {
 		md: oldCreator => dedupe(plugin.manifest.id, oldCreator, (ctx, file, subpath?) => {
-			let embed = oldCreator(ctx, file, subpath),
-				listener = new Component();
+			const embed = oldCreator(ctx, file, subpath);
+			const listener = new Component();
 
 			function ensureDepth(): void {
-				let depth = store.getEmbedDepth(ctx.containerEl);
+				const depth = store.getEmbedDepth(ctx.containerEl);
 				// If the depth is greater than the depth of nearest containing canvas,
 				// then it has not been reset.
 				if (depth !== null && depth >= ctx.depth) ctx.depth = depth + 1;
 				store.cacheEmbedDepth(ctx.containerEl, ctx.depth);
 			}
-			
+
 			// containerEl has not inserted into DOM yet. Wait until it is loaded.
 			listener.onload = () => {
 				if (ctx.containerEl.isShown()) {
@@ -203,14 +203,14 @@ export function patchMarkdownEmdedCreator(plugin: BetterEmbeddedCanvasPlugin): v
  * automatically when unloading the plugin.
  */
 export function patchInternalLinkEditorSuggest(plugin: BetterEmbeddedCanvasPlugin): void {
-	let suggest = hookInternalLinkEditorSuggest(plugin.app);
+	const suggest = hookInternalLinkEditorSuggest(plugin.app);
 	if (!suggest) return;
 
 	patchInternalLinkSuggestManager(suggest, plugin);
 	plugin.register(around(suggest, {
 		renderSuggestion: oldFn => dedupe(plugin.manifest.id, oldFn, function (this: InternalLinkEditorSuggest, result, suggestEl) {
 			if (result.type == 'alias' && result.isCanvasNode) {
-				let { titleEl, noteEl, flairEl } = getComplexSuggestTemplate(suggestEl);
+				const { titleEl, noteEl, flairEl } = getComplexSuggestTemplate(suggestEl);
 
 				suggestEl.toggleClass('mod-downranked', !!result.downranked);
 
@@ -242,7 +242,7 @@ export function patchInternalLinkEditorSuggest(plugin: BetterEmbeddedCanvasPlugi
 function patchInternalLinkSuggestManager(suggest: InternalLinkEditorSuggest, plugin: BetterEmbeddedCanvasPlugin): void {
 	plugin.register(around(suggest.suggestManager, {
 		getHeadingSuggestions: oldFn => dedupe(plugin.manifest.id, oldFn, async function (this: InternalLinkSuggestManager, runnable, linkpath, query) {
-			let file = this.app.metadataCache.getFirstLinkpathDest(linkpath, this.getSourcePath());
+			const file = this.app.metadataCache.getFirstLinkpathDest(linkpath, this.getSourcePath());
 			return file?.extension == 'canvas'
 				? await getNodeSuggests(plugin, file, linkpath, query)
 				: await oldFn.call(this, runnable, linkpath, query);

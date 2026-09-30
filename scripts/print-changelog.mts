@@ -4,7 +4,7 @@ import { at } from './utils/directory-util.mjs';
 import { getManifest } from './utils/config-util.mjs';
 
 async function validate(changelog: ChangelogDesc): Promise<boolean> {
-	let manifest = await getManifest();
+	const manifest = await getManifest();
 	return manifest.version === changelog.version;
 }
 
@@ -13,7 +13,7 @@ async function print(changelog: ChangelogDesc): Promise<void> {
 }
 
 async function main(): Promise<void> {
-	let changelog = await getLastChangelog();
+	const changelog = await getLastChangelog();
 	if (await validate(changelog)) {
 		await print(changelog);
 	} else {

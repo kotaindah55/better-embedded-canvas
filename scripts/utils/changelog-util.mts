@@ -1,4 +1,4 @@
-import fsPromises from 'node:fs/promises'
+import fsPromises from 'node:fs/promises';
 import { at } from './directory-util.mjs';
 
 export interface ChangelogDesc {
@@ -7,12 +7,12 @@ export interface ChangelogDesc {
 }
 
 export async function getLastChangelog(): Promise<ChangelogDesc> {
-	let file = await fsPromises.open(CHANGELOG_PATH, 'r');
+	const file = await fsPromises.open(CHANGELOG_PATH, 'r');
 	let text = '';
 	let version = '';
 	let lineIdx = 0;
 
-	for await (let line of file.readLines({ encoding: 'utf-8' })) {
+	for await (const line of file.readLines({ encoding: 'utf-8' })) {
 		if (!version) {
 			if (lineIdx === 0) version = CHANGELOG_VERSION.exec(line)?.[1] ?? '';
 			if (!version) {
@@ -28,6 +28,8 @@ export async function getLastChangelog(): Promise<ChangelogDesc> {
 			}
 			text += line + '\n';
 		}
+
+		lineIdx++;
 	}
 
 	return { text, version };

@@ -70,22 +70,20 @@ export class BetterEmbeddedCanvasPlugin extends Plugin {
 				this.replaceCanvasEmbedCreator();
 			} else {
 				let patched = false;
-				let doPatch = () => {
+				const doPatch = (): void => {
 					if (patched) return;
 					patched = true;
 					this.patchCanvas();
 					this.replaceCanvasEmbedCreator();
 					this.app.vault.offref(ref);
-				}
+				};
 
 				// Replacement must be done before any canvas embed can be rendered.
 				// Vault loads files after all enabled plugins are loaded.
-				let ref = this.app.vault.on('create', doPatch);
+				const ref = this.app.vault.on('create', doPatch);
 				this.app.workspace.onLayoutReady(doPatch);
 			}
-		}
-		
-		else {
+		} else {
 			// Prompt user to re-enable Canvas plugin and restart the app.
 			this.app.workspace.onLayoutReady(noticeCanvasIsDisabled);
 		}
@@ -128,7 +126,7 @@ export class BetterEmbeddedCanvasPlugin extends Plugin {
 
 	private handleExternalPluginChange(): void {
 		// Prompt user to restart the app after toggling Advanced Canvas plugin.
-		let isAdvancedCanvasEnabled = isPluginEnabled(this.app, ADVANCED_CANVAS_PLUGIN_ID);
+		const isAdvancedCanvasEnabled = isPluginEnabled(this.app, ADVANCED_CANVAS_PLUGIN_ID);
 		if (this.isAdvancedCanvasEnabled != isAdvancedCanvasEnabled) {
 			this.isAdvancedCanvasEnabled = isAdvancedCanvasEnabled;
 			noticeRestartApp();

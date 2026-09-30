@@ -2,7 +2,7 @@ import { type App, MarkdownView, Notice } from './obsidian';
 import { t } from './i18n';
 
 export function noticeReloadAfterDisable(app: App): void {
-	let notice = new Notice(t('notice.reloadAfterDisable'), 0);
+	const notice = new Notice(t('notice.reloadAfterDisable'), 0);
 
 	notice.addButton(t('buttonReload'), () => {
 		reloadNotes(app);

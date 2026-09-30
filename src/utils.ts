@@ -40,8 +40,8 @@ export function defer(fn: () => unknown): void {
  * @returns Previously registered `EmbedCreator` if any.
  */
 export function replaceEmbedCreator<T extends EmbedComponent>(app: App, ext: string, creator: EmbedCreator<T>): EmbedCreator<T> | null {
-	let reg = app.embedRegistry,
-		oldCreator = reg.embedByExtension[ext] ?? null;
+	const reg = app.embedRegistry;
+	const oldCreator = reg.embedByExtension[ext] ?? null;
 
 	// Registering creator to already registered extension throws error.
 	// Therefore, we need to unregister it first.
@@ -89,7 +89,7 @@ export function toPx(value: number): string {
  * Create a component that will run given callbacks on loaded/unloaded.
  */
 export function lifecycle(onload?: () => void, onunload?: () => void): Component {
-	let component = new Component();
+	const component = new Component();
 	if (onload) component.onload = onload;
 	if (onunload) component.onunload = onunload;
 	return component;
@@ -105,7 +105,7 @@ export function lifecycle(onload?: () => void, onunload?: () => void): Component
  * is getting unloaded.
  */
 export function onceElInserted(el: HTMLElement, cb: () => void, unregisterer?: Component): void {
-	let observer = lifecycle(undefined, el.onNodeInserted(() => {
+	const observer = lifecycle(undefined, el.onNodeInserted(() => {
 		cb();
 		unregisterer?.removeChild(observer);
 	}, true));
@@ -165,13 +165,13 @@ export function trackPointer(startEvt: PointerEvent, handlers: {
 
 	startThreshold = Math.abs(startThreshold);
 
-	let { win } = startEvt,
-		abortController = new AbortController();
+	const { win } = startEvt;
+	const abortController = new AbortController();
 
 	// Handler should be marked as started as soon as possible when the
 	// threshold is 0.
-	let started = startThreshold === 0,
-		startPoint = pointerToPoint(startEvt);
+	let started = startThreshold === 0;
+	const startPoint = pointerToPoint(startEvt);
 
 	if (started) handlers.start?.();
 
@@ -182,7 +182,7 @@ export function trackPointer(startEvt: PointerEvent, handlers: {
 
 	function onPointerMove(evt: PointerEvent): void {
 		if (!started) {
-			let currPoint = pointerToPoint(evt);
+			const currPoint = pointerToPoint(evt);
 			if (measureDistance(startPoint, currPoint) >= startThreshold) {
 				started = true;
 				handlers.start?.();
@@ -264,13 +264,13 @@ export function insideCanvasNode(el: HTMLElement): boolean {
  * @param canvas `Canvas` whose `canvasRect` property to be updated.
  */
 export function ensureCanvasRect(canvas: Canvas): void {
-	let { wrapperEl } = canvas,
-		wrapperRect = wrapperEl.getBoundingClientRect();
+	const { wrapperEl } = canvas;
+	const wrapperRect = wrapperEl.getBoundingClientRect();
 
-	let left = wrapperRect.left + wrapperEl.clientLeft,
-		top = wrapperRect.top + wrapperEl.clientTop,
-		width = wrapperEl.clientWidth,
-		height = wrapperEl.clientHeight;
+	const left = wrapperRect.left + wrapperEl.clientLeft;
+	const top = wrapperRect.top + wrapperEl.clientTop;
+	const width = wrapperEl.clientWidth;
+	const height = wrapperEl.clientHeight;
 
 	canvas.canvasRect = {
 		left, top, width, height,

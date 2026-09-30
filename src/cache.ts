@@ -30,8 +30,8 @@ interface CanvasGroupCache {
 }
 
 /**
- * Lazy-cache canvas data. Only cache when canvas data is explicitly
- * requested.
+ * Singleton that caches canvas data lazily. Only cache when canvas data
+ * is explicitly requested.
  */
 export class CanvasCacheManager extends Component {
 	private readonly app: App;
@@ -59,7 +59,7 @@ export class CanvasCacheManager extends Component {
 	 * content.
 	 */
 	public getCache(file: TFile, content?: string): CanvasCache | null {
-		let data = this.cache.get(file) ?? null;
+		const data = this.cache.get(file) ?? null;
 		if (data) return data;
 		if (content) return this.compute(file, content);
 		void this.computeFromFile(file);
@@ -73,7 +73,7 @@ export class CanvasCacheManager extends Component {
 	 * content.
 	 */
 	public async getCacheAsync(file: TFile, content?: string): Promise<CanvasCache | null> {
-		let data = this.cache.get(file) ?? null;
+		const data = this.cache.get(file) ?? null;
 		if (data) return data;
 		if (content) return this.compute(file, content);
 		return await this.computeFromFile(file);
@@ -87,15 +87,15 @@ export class CanvasCacheManager extends Component {
 		if (file.extension != 'canvas') return null;
 
 		try {
-			let data = JSON.parse(content) as CanvasData,
-				cache: CanvasCache = { nodes: {}, edges: data.edges, groups: {}, data: {} };
+			const data = JSON.parse(content) as CanvasData;
+			const cache: CanvasCache = { nodes: {}, edges: data.edges, groups: {}, data: {} };
 
 			// Map all nodes to their id.
 			data.nodes.forEach(node => {
 				cache.nodes[node.id] = node;
 				// Group nodes and edges by their group.
 				if (node.type == 'group') {
-					let groupeCache: CanvasGroupCache = {
+					const groupeCache: CanvasGroupCache = {
 						nodes: {},
 						edges: []
 					};

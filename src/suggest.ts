@@ -2,15 +2,15 @@ import {
 	type AliasLinkSuggestResult,
 	type SearchMatches,
 	type SearchResult,
-	prepareFuzzySearch,
-	TFile
+	type TFile,
+	prepareFuzzySearch
 } from './obsidian';
 import type { BetterEmbeddedCanvasPlugin } from './main';
 
 /**
  * Get suggest results for canvas nodes.
  * 
- * @param plugin 
+ * @param plugin
  * @param file Canvas file.
  * @param linkpath Linkpath of the canvas file.
  * @param query Query used to search canvas nodes. Retrieved from link
@@ -22,20 +22,20 @@ export async function getNodeSuggests(
 	linkpath: string,
 	query: string
 ): Promise<AliasLinkSuggestResult[]> {
-	let results: AliasLinkSuggestResult[] = [],
-		cache = await plugin.canvasCache.getCacheAsync(file);
+	const results: AliasLinkSuggestResult[] = [];
+	const cache = await plugin.canvasCache.getCacheAsync(file);
 
 	if (query.startsWith('#')) query = query.slice(1);
 
 	if (cache) {
-		let search = prepareFuzzySearch(query);
+		const search = prepareFuzzySearch(query);
 
 		Object.each(cache.nodes, node => {
-			let downranked = false,
-				// Displayed as suggestion title.
-				label = '',
-				alias = '',
-				isGroupNode = false;
+			let downranked = false;
+			// Displayed as suggestion title.
+			let label = '';
+			let alias = '';
+			let isGroupNode = false;
 
 			if (node.type == 'text') {
 				label = node.text;
@@ -48,13 +48,13 @@ export async function getNodeSuggests(
 				return;
 			}
 
-			let matches: SearchMatches | null = null,
-				idMatches: SearchMatches | null = null,
-				score = 0;
+			let matches: SearchMatches | null = null;
+			let idMatches: SearchMatches | null = null;
+			let score = 0;
 
 			if (query) {
-				let result: SearchResult | null = null,
-					idResult: SearchResult | null = null;
+				let result: SearchResult | null = null;
+				let idResult: SearchResult | null = null;
 
 				if (label) result = search(label);
 				idResult = search(node.id);
@@ -111,20 +111,20 @@ export async function getNodeSuggests(
  * @returns Complex suggest item components.
  */
 export function getComplexSuggestTemplate(suggestEl?: HTMLElement): {
-	contentEl: HTMLElement,
-	auxEl: HTMLElement,
-	titleEl: HTMLElement,
-	noteEl: HTMLElement,
-	flairEl: HTMLElement
+	contentEl: HTMLElement;
+	auxEl: HTMLElement;
+	titleEl: HTMLElement;
+	noteEl: HTMLElement;
+	flairEl: HTMLElement;
 } {
 	suggestEl ??= createDiv('suggestion-item');
 	suggestEl.addClass('mod-complex');
 
-	let contentEl = suggestEl.createDiv('suggestion-content'),
-		auxEl = suggestEl.createDiv('suggestion-aux'),
-		titleEl = contentEl.createDiv('suggestion-title'),
-		noteEl = contentEl.createDiv('suggestion-note'),
-		flairEl = auxEl.createSpan('suggestion-flair');
+	const contentEl = suggestEl.createDiv('suggestion-content');
+	const auxEl = suggestEl.createDiv('suggestion-aux');
+	const titleEl = contentEl.createDiv('suggestion-title');
+	const noteEl = contentEl.createDiv('suggestion-note');
+	const flairEl = auxEl.createSpan('suggestion-flair');
 
 	return { contentEl, auxEl, titleEl, noteEl, flairEl };
 }

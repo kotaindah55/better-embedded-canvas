@@ -7,19 +7,19 @@ import { isValidVersion } from './utils/version-util.mjs';
 import { rootAsCwd } from './utils/directory-util.mjs';
 
 async function main(): Promise<void> {
-	let { version: targetVersion } = await getLastChangelog();
-	let manifest = await getManifest();
+	const { version: targetVersion } = await getLastChangelog();
+	const manifest = await getManifest();
 
 	if (!isValidVersion(manifest.version))
 		throw Error('Manifest use invalid version');
 	if (compareVersions(targetVersion, manifest.version) >= 0)
 		throw Error('Current version is less than previous version');
 
-	let message = `chore: bump version to ${targetVersion}`;
-	let tobeCommitted = ['manifest.json', 'package.json', 'versions.json', 'CHANGELOGS.txt'];
-	let packageConfig = await getPackageConfig();
-	let versionHistory = await getVersionHistory();
-	let autoPush = process.argv[2] === 'auto-push';
+	const message = `chore: bump version to ${targetVersion}`;
+	const tobeCommitted = ['manifest.json', 'package.json', 'versions.json', 'CHANGELOGS.txt'];
+	const packageConfig = await getPackageConfig();
+	const versionHistory = await getVersionHistory();
+	const autoPush = process.argv[2] === 'auto-push';
 
 	packageConfig.version = targetVersion;
 	manifest.version = targetVersion;

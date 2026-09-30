@@ -3,7 +3,7 @@ import process from 'node:process';
 import { rootAsCwd } from './utils/directory-util.mjs';
 
 function main(): void {
-	let autoPush = process.argv[2] === 'auto-push';
+	const autoPush = process.argv[2] === 'auto-push';
 
 	rootAsCwd();
 	childProcess.spawnSync('npm', ['install', '--package-lock-only']);

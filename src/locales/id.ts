@@ -39,4 +39,4 @@ export default {
 	settingHeading: {
 		nodeEmbed: 'Sematan kartu'
 	}
-}
+};

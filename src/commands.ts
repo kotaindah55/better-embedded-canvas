@@ -22,10 +22,10 @@ export function registerCommands(plugin: BetterEmbeddedCanvasPlugin): void {
  * Prompt user to embed a canvas into a note.
  */
 function embedCanvas(this: BetterEmbeddedCanvasPlugin, editor: Editor, ctx: MarkdownFileInfo): void {
-	let sourcePath = ctx.file?.path ?? '';
+	const sourcePath = ctx.file?.path ?? '';
 
 	this.canvasChooser.openFor(file => {
-		let linktext = this.app.fileManager.generateMarkdownLink(file, sourcePath);
+		const linktext = this.app.fileManager.generateMarkdownLink(file, sourcePath);
 		editor.replaceSelection(`!${linktext}`, `${this.manifest.id}.insert.canvas-link`);
 	});
 }
@@ -34,10 +34,10 @@ function embedCanvas(this: BetterEmbeddedCanvasPlugin, editor: Editor, ctx: Mark
  * Prompt user to embed a canvas node into a note.
  */
 function embedCanvasNode(this: BetterEmbeddedCanvasPlugin, editor: Editor, ctx: MarkdownFileInfo): void {
-	let sourcePath = ctx.file?.path ?? '';
+	const sourcePath = ctx.file?.path ?? '';
 
 	this.canvasChooser.openFor('node-chooser', (file, data) => {
-		let linktext = this.app.fileManager.generateMarkdownLink(
+		const linktext = this.app.fileManager.generateMarkdownLink(
 			file,
 			sourcePath,
 			`#${data.id}`,

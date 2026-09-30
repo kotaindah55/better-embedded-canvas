@@ -58,7 +58,7 @@ export class CanvasEmbedInteractiveRenderer extends Component implements CanvasE
 		this.zoomControlsEl = this.canvas.canvasControlsEl.firstElementChild as HTMLElement;
 		this.mainControlsEl = this.canvas.canvasControlsEl.createDiv({
 			cls: ['canvas-control-group', 'mod-raised'],
-			prepend: true,
+			prepend: true
 		});
 
 		// Button to open canvas fully.
@@ -115,7 +115,7 @@ export class CanvasEmbedInteractiveRenderer extends Component implements CanvasE
 
 	public setData(data: CanvasData): void {
 		this.canvas.setData(data);
-		
+
 		if (this.firstLoad) {
 			if (beingExportedAsPDF(this.containerEl) || this.containerEl.isShown()) {
 				this.init();

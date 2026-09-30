@@ -208,7 +208,6 @@ export class BetterEmbeddedCanvasSettingTab extends PluginSettingTab {
 					.onChange(this.setControlValue.bind(this, 'embedGroupContentOnly'))
 				);
 		}
-		
 	}
 
 	public override hide(): void {
@@ -225,6 +224,10 @@ export class SettingManager extends Component {
 	private readonly plugin: BetterEmbeddedCanvasPlugin;
 	private readonly requestSave: Debouncer<[], void>;
 	private readonly dispatcher: Events;
+	/**
+	 * Keys of changed settings.
+	 */
+	private readonly changed: Set<BetterEmbeddedCanvasSettingKey>;
 
 	private settings: BetterEmbeddedCanvasSettings;
 	/**
@@ -232,10 +235,6 @@ export class SettingManager extends Component {
 	 * `defer(false)` to trigger the event if the settings are changed before.
 	 */
 	private isDeferred: boolean;
-	/**
-	 * Keys of changed settings.
-	 */
-	private changed: Set<BetterEmbeddedCanvasSettingKey>;
 
 	public constructor(plugin: BetterEmbeddedCanvasPlugin) {
 		super();
@@ -294,8 +293,8 @@ export class SettingManager extends Component {
 		getNewVal: (oldVal: BetterEmbeddedCanvasSettings[K]) => BetterEmbeddedCanvasSettings[K],
 		compare?: (oldVal: BetterEmbeddedCanvasSettings[K], newVal: BetterEmbeddedCanvasSettings[K]) => boolean
 	): void {
-		let oldVal = this.settings[key],
-			newVal = getNewVal(oldVal);
+		const oldVal = this.settings[key];
+		const newVal = getNewVal(oldVal);
 
 		// Default comparison.
 		compare = (oldVal, newVal) => oldVal === newVal;

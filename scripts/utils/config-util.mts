@@ -11,22 +11,22 @@ export interface PackageConfig {
 }
 
 export async function dependencyVersion(dep: string): Promise<string | null> {
-	let packageJson = await getPackageConfig();
+	const packageJson = await getPackageConfig();
 	return packageJson.dependencies[dep] ?? null;
 }
 
 export async function getPackageConfig(): Promise<PackageConfig> {
-	let rawJson = await fsPromises.readFile(at('package.json'), 'utf-8');
+	const rawJson = await fsPromises.readFile(at('package.json'), 'utf-8');
 	return JSON.parse(rawJson) as PackageConfig;
 }
 
 export async function getManifest(): Promise<PluginManifest> {
-	let raw = await fsPromises.readFile(at('manifest.json'), 'utf-8');
+	const raw = await fsPromises.readFile(at('manifest.json'), 'utf-8');
 	return JSON.parse(raw) as PluginManifest;
 }
 
 export async function getVersionHistory(): Promise<VersionHistory> {
-	let raw = await fsPromises.readFile(at('versions.json'), 'utf-8');
+	const raw = await fsPromises.readFile(at('versions.json'), 'utf-8');
 	return JSON.parse(raw) as VersionHistory;
 }
 

@@ -11,7 +11,7 @@ const output = at('dist/styles.css');
 
 async function main(): Promise<void> {
 	if (dev) {
-		let watcher = childProcess.spawn('sass', [
+		const watcher = childProcess.spawn('sass', [
 			'--watch',
 			sassConfig.sourceMap ? '--embed-source-map' : '--no-source-map',
 			`--style=${sassConfig.style ?? 'expanded'}`,
@@ -29,9 +29,9 @@ async function main(): Promise<void> {
 		let close: (value: unknown) => void;
 		await new Promise(resolve => close = resolve);
 	}
-	
+
 	else {
-		let data = sass.compile(entry, sassConfig);
+		const data = sass.compile(entry, sassConfig);
 		await fsPromises.writeFile(output, data.css);
 	}
 }

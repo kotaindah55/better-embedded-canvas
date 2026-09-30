@@ -22,7 +22,7 @@ import store from './store';
 const enum CanvasEmbedMode {
 	Interactive = 'interactive',
 	Static = 'static',
-	Markdown  = 'markdown'
+	Markdown = 'markdown'
 }
 
 /**
@@ -36,14 +36,14 @@ export class CanvasEmbed extends Component implements EmbedComponent {
 	public readonly headerEl: HTMLElement;
 	public readonly file: TFile;
 	public readonly subpath?: string | undefined;
-	
+
 	private readonly ctx: EmbedContext;
 	private readonly headerInnerEl: HTMLElement;
 	/**
 	 * Notifies canvas height and alias update.
 	 */
 	private readonly mutationObserver: MutationObserver;
-	
+
 	private mode: CanvasEmbedMode | null;
 	private renderer: CanvasEmbedRenderer | null;
 
@@ -121,7 +121,7 @@ export class CanvasEmbed extends Component implements EmbedComponent {
 	}
 
 	public async loadFile(): Promise<void> {
-		let rawData = await this.app.vault.cachedRead(this.file);
+		const rawData = await this.app.vault.cachedRead(this.file);
 
 		if (this.containerEl.isShown()) {
 			this.ensureDepth();
@@ -138,7 +138,7 @@ export class CanvasEmbed extends Component implements EmbedComponent {
 	 * @param raw Replaces canvas raw data.
 	 */
 	public async reload(raw?: string): Promise<void> {
-		let rawData = raw ?? await this.app.vault.cachedRead(this.file);
+		const rawData = raw ?? await this.app.vault.cachedRead(this.file);
 		await this.parse(rawData);
 	}
 
@@ -148,13 +148,13 @@ export class CanvasEmbed extends Component implements EmbedComponent {
 	 * @param evt Translates an event into the type of pane that should open.
 	 */
 	public async open(evt?: PointerEvent): Promise<void> {
-		let leaf = this.app.workspace.getLeaf(Keymap.isModEvent(evt));
+		const leaf = this.app.workspace.getLeaf(Keymap.isModEvent(evt));
 		await leaf.openFile(this.file);
 
 		// Select the node and zoom canvas to it.
 		if (this.nodeId && leaf.view instanceof CanvasView) {
-			let canvas = leaf.view.canvas;
-			let node = canvas.nodes.get(this.nodeId);
+			const canvas = leaf.view.canvas;
+			const node = canvas.nodes.get(this.nodeId);
 
 			if (node) {
 				canvas.selectOnly(node);
@@ -173,25 +173,26 @@ export class CanvasEmbed extends Component implements EmbedComponent {
 	 * Parse canvas raw data and render the embed from it.
 	 */
 	private async parse(raw: string): Promise<void> {
-		let nodeId = this.nodeId;
+		const nodeId = this.nodeId;
+		const serialized: CanvasData = { nodes: [], edges: [] };
+
 		let subHeader = '';
-		let serialized: CanvasData = { nodes: [], edges: [] };
 		let mode = this.shouldBeStatic()
 			? CanvasEmbedMode.Static
 			: CanvasEmbedMode.Interactive;
 
 		// Render single node / group.
 		if (nodeId !== null) {
-			let cache = this.plugin.canvasCache.getCache(this.file, raw);
+			const cache = this.plugin.canvasCache.getCache(this.file, raw);
 			if (cache) {
-				let target = cache.nodes[nodeId];
+				const target = cache.nodes[nodeId];
 				Object.assign(serialized, cache.data);
 
 				if (target) {
 					subHeader = target.id;
 
 					if (target.type == 'group') {
-						let grouped = cache.groups[target.id];
+						const grouped = cache.groups[target.id];
 						if (!this.settings.embedGroupContentOnly)
 							serialized.nodes.push(target);
 						if (grouped) {
@@ -201,9 +202,7 @@ export class CanvasEmbed extends Component implements EmbedComponent {
 								edge.toNode in grouped.nodes
 							));
 						}
-					}
-					
-					else {
+					} else {
 						serialized.nodes.push(target);
 						if (this.settings.embedNodeContentOnly) {
 							// Rendered as markdown embed.
@@ -212,10 +211,8 @@ export class CanvasEmbed extends Component implements EmbedComponent {
 					}
 				}
 			}
-		}
-
-		else try {
-			serialized = JSON.parse(raw) as CanvasData;
+		} else try {
+			Object.assign(serialized, JSON.parse(raw));
 		} catch (err) {
 			console.error(err);
 		}
@@ -270,21 +267,21 @@ export class CanvasEmbed extends Component implements EmbedComponent {
 	*/
 	private relayoutForPdf(): void {
 		// Get last configured settings.
-		let exportSettings = this.app.vault.getConfig('pdfExportSettings');
+		const exportSettings = this.app.vault.getConfig('pdfExportSettings');
 		if (!exportSettings) return;
 
-		let bodyEl = this.containerEl.doc.body;
-		let markdownEl = bodyEl.find(':scope > .print > .markdown-preview-view');
-		let {
+		const bodyEl = this.containerEl.doc.body;
+		const markdownEl = bodyEl.find(':scope > .print > .markdown-preview-view');
+		const {
 			pageSize: pageType,
 			margin: marginType,
 			landscape
 		} = exportSettings;
 
-		let pageWidth = landscape ? PageSize[pageType].height : PageSize[pageType].width;
-		let inlineMargin = marginType == '0' ? DEFAULT_PAGE_MARGIN : 0;
-		let inlinePadding = parseInt(markdownEl.getCssPropertyValue('padding-inline').replace('px', ''));
-		let canvasWidth = pageWidth - inlineMargin * 2 - inlinePadding * 2;
+		const pageWidth = landscape ? PageSize[pageType].height : PageSize[pageType].width;
+		const inlineMargin = marginType == '0' ? DEFAULT_PAGE_MARGIN : 0;
+		const inlinePadding = parseInt(markdownEl.getCssPropertyValue('padding-inline').replace('px', ''));
+		const canvasWidth = pageWidth - inlineMargin * 2 - inlinePadding * 2;
 
 		this.containerEl.setCssStyles({ width: toPx(canvasWidth) });
 	}
@@ -298,8 +295,8 @@ export class CanvasEmbed extends Component implements EmbedComponent {
 	private updateHeight(): void {
 		// First value of specified dimension (e.g. "400" in "[[link-to-file|400x300]]")
 		// is stored as "width" attribute value.
-		let height = Number(this.containerEl.getAttr('width'));
-		let heightInPx = height ? toPx(height): '';
+		const height = Number(this.containerEl.getAttr('width'));
+		const heightInPx = height ? toPx(height) : '';
 		this.containerEl.setCssProps({
 			'--embedded-canvas-height': heightInPx,
 			'--embedded-canvas-minimap-height': heightInPx

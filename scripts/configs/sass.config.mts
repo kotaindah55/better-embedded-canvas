@@ -5,5 +5,5 @@ const dev = process.argv[2] === 'dev';
 
 export default {
 	style: dev ? 'expanded' : 'compressed',
-	sourceMap: false 
+	sourceMap: false
 } as sass.Options<'sync'>;

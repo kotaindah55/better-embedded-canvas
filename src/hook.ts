@@ -27,7 +27,7 @@ function mockLeaf(app: App): WorkspaceLeaf {
  */
 function isInternalLinkSuggestManager(obj: unknown): obj is InternalLinkSuggestManager {
 	if (!obj) return false;
-	let proto = Object.getPrototypeOf(obj) as unknown;
+	const proto = Object.getPrototypeOf(obj) as unknown;
 	return hasOwnAll(proto, 'matchBlock', 'getHeadingSuggestions', 'getFileSuggestions', 'getSuggestionsAsync');
 }
 
@@ -38,8 +38,8 @@ export function hookCanvasEditor(app: App): void {
 	// Hooking it from view registry can trigger Advanced Canvas patching on
 	// CanvasView and Canvas early, with the condition that Advanced
 	// Canvas has already attached watcher to the registered view creator.
-	let canvasViewCreator = app.viewRegistry.getViewCreatorByType('canvas') ?? app.internalPlugins.getPluginById('canvas').views.canvas,
-		canvasView = canvasViewCreator(mockLeaf(app));
+	const canvasViewCreator = app.viewRegistry.getViewCreatorByType('canvas') ?? app.internalPlugins.getPluginById('canvas').views.canvas;
+	const canvasView = canvasViewCreator(mockLeaf(app));
 
 	CanvasView = canvasView.constructor as typeof CanvasView;
 	Canvas = canvasView.canvas.constructor as typeof Canvas;
@@ -49,9 +49,9 @@ export function hookCanvasEditor(app: App): void {
  * Hook and return `InternalLinkEditorSuggest` instance.
  */
 export function hookInternalLinkEditorSuggest(app: App): InternalLinkEditorSuggest | null {
-	for (let suggest of app.workspace.editorSuggest.suggests) {
+	for (const suggest of app.workspace.editorSuggest.suggests) {
 		if ('suggestManager' in suggest) {
-			let manager = suggest.suggestManager;
+			const manager = suggest.suggestManager;
 			if (isInternalLinkSuggestManager(manager))
 				return suggest as InternalLinkEditorSuggest;
 		}

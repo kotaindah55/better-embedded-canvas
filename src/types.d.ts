@@ -1,3 +1,10 @@
+/* eslint-disable no-undef, @typescript-eslint/explicit-member-accessibility, eslint-comments/disable-enable-pair --
+ * - `no-undef` rule does not recognize any of references that are defined outside this module and not imported onto it,
+ *   though typescript does recognize them.
+ * - `private` modifier is unnecessary in type augmentation, and so is `public` modifier. This is because we want access
+ *   augmented members from outside their class instance.
+ */
+
 import type { CanvasData, NodeType } from 'obsidian/canvas';
 import type _i18next from 'i18next';
 
@@ -483,7 +490,7 @@ declare module 'obsidian' {
 	}
 
 	interface InternalPluginInstanceMap {
-		'canvas': CanvasPluginInstance;
+		canvas: CanvasPluginInstance;
 	}
 
 	/**
@@ -506,7 +513,7 @@ declare module 'obsidian' {
 	type InternalPluginViewTypes<T extends InternalPluginId> = InternalPluginViewTypesMap[T];
 
 	interface InternalPluginViewTypesMap {
-		'canvas': 'canvas';
+		canvas: 'canvas';
 	}
 
 	interface Notice {
@@ -609,4 +616,4 @@ declare module 'obsidian/canvas' {
 	type NodeType = 'text' | 'file' | 'link' | 'group';
 }
 
-export {}
+export {};

@@ -50,7 +50,7 @@ function getEmbedDepth(el: HTMLElement): number | null {
 
 	while (curr) {
 		if (embedDepthStore.has(curr)) {
-			let depth = embedDepthStore.get(curr);
+			const depth = embedDepthStore.get(curr);
 			return depth ?? 1;
 		}
 		curr = curr.parentElement;

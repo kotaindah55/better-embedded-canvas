@@ -3,7 +3,7 @@ import { getManifest } from './utils/config-util.mjs';
 import { isValidVersion } from './utils/version-util.mjs';
 
 async function main(): Promise<void> {
-	let { version } = await getManifest();
+	const { version } = await getManifest();
 	if (!isValidVersion(version)) throw Error('Manifest use invalid version');
 
 	childProcess.spawnSync('git', ['tag', '-a', version, '-f', '-m', `'${version}'`]);

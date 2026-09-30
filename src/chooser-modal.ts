@@ -8,7 +8,7 @@ import {
 	renderMatches,
 	renderResults,
 	setIcon,
-	SuggestModal,
+	SuggestModal
 } from './obsidian';
 import type { BetterEmbeddedCanvasPlugin } from './main';
 import { getComplexSuggestTemplate } from './suggest';
@@ -70,7 +70,7 @@ export class CanvasChooserModal extends FuzzySuggestModal<TFile> {
 	}
 
 	public override renderSuggestion(result: FuzzyMatch<TFile>, el: HTMLElement): void {
-		let { titleEl, noteEl } = getComplexSuggestTemplate(el);
+		const { titleEl, noteEl } = getComplexSuggestTemplate(el);
 		titleEl.setText(result.item.basename);
 		renderResults(noteEl, result.item.path, result.match);
 	}
@@ -161,8 +161,8 @@ class CanvasNodeChooserModal extends SuggestModal<CanvasNodeSuggestResult> {
 	}
 
 	public async getSuggestions(query: string): Promise<CanvasNodeSuggestResult[]> {
-		let search = prepareFuzzySearch(query),
-			lastQuery = this.lastQuery;
+		const search = prepareFuzzySearch(query);
+		const lastQuery = this.lastQuery;
 
 		this.lastQuery = query;
 
@@ -173,7 +173,7 @@ class CanvasNodeChooserModal extends SuggestModal<CanvasNodeSuggestResult> {
 			if (!this.lastResults) return [];
 
 			this.lastResults = this.lastResults.filter(result => {
-				let label = result.data.type == 'text' ? result.data.text : result.data.label;
+				const label = result.data.type == 'text' ? result.data.text : result.data.label;
 				result.idResult = search(result.data.id);
 				result.labelResult = search(label ?? '');
 				return !!result.idResult || !!result.labelResult;
@@ -188,20 +188,19 @@ class CanvasNodeChooserModal extends SuggestModal<CanvasNodeSuggestResult> {
 		}
 
 		else if (this.haystack) {
-			let results: CanvasNodeSuggestResult[] = [];
+			const results: CanvasNodeSuggestResult[] = [];
 			this.haystack.forEach(data => {
-				let label = data.type == 'text' ? data.text : data.label;
-
-				let idResult = search(data.id),
-					labelResult = search(label ?? '');
+				const label = data.type == 'text' ? data.text : data.label;
+				const idResult = search(data.id);
+				const labelResult = search(label ?? '');
 
 				if (idResult || labelResult) results.push({
 					data,
 					idResult,
-					labelResult,
+					labelResult
 				});
 			});
-			
+
 			if (results.length <= 0) {
 				this.lastResults = null;
 				return [];
@@ -218,9 +217,9 @@ class CanvasNodeChooserModal extends SuggestModal<CanvasNodeSuggestResult> {
 	}
 
 	public renderSuggestion(result: CanvasNodeSuggestResult, el: HTMLElement): void {
-		let { titleEl, noteEl, flairEl } = getComplexSuggestTemplate(el),
-			{ data, idResult, labelResult } = result,
-			label = data.type == 'text' ? data.text : data.label ?? '';
+		const { titleEl, noteEl, flairEl } = getComplexSuggestTemplate(el);
+		const { data, idResult, labelResult } = result;
+		const label = data.type == 'text' ? data.text : data.label ?? '';
 
 		renderMatches(noteEl, data.id, idResult?.matches ?? null);
 
@@ -229,7 +228,7 @@ class CanvasNodeChooserModal extends SuggestModal<CanvasNodeSuggestResult> {
 		} else {
 			titleEl.setText(data.id);
 		}
-		
+
 		if (data.type == 'group') setIcon(flairEl, 'lucide-group');
 	}
 
@@ -242,9 +241,9 @@ class CanvasNodeChooserModal extends SuggestModal<CanvasNodeSuggestResult> {
 	 * nodes.
 	 */
 	private async collectHaystack(): Promise<void> {
-		let cache = await this.plugin.canvasCache.getCacheAsync(this.file);
+		const cache = await this.plugin.canvasCache.getCacheAsync(this.file);
 		this.haystack = cache
-			? Object.values(cache.nodes).filter<EmbeddableCanvasNodeData>((data) => data.type == 'group' || data.type == 'text')
+			? Object.values(cache.nodes).filter<EmbeddableCanvasNodeData>(data => data.type == 'group' || data.type == 'text')
 			: null;
 	}
 }
@@ -256,10 +255,10 @@ class CanvasNodeChooserModal extends SuggestModal<CanvasNodeSuggestResult> {
  * is.
  */
 function compareCanvasNodeResults(a: CanvasNodeSuggestResult, b: CanvasNodeSuggestResult): number {
-	let idScoreA = a.idResult?.score ?? -100,
-		idScoreB = b.idResult?.score ?? -100,
-		labelScoreA = a.labelResult?.score ?? -100,
-		labelScoreB = b.labelResult?.score ?? -100;
+	const idScoreA = a.idResult?.score ?? -100;
+	const idScoreB = b.idResult?.score ?? -100;
+	const labelScoreA = a.labelResult?.score ?? -100;
+	const labelScoreB = b.labelResult?.score ?? -100;
 
 	return (
 		labelScoreB - labelScoreA ||
