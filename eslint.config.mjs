@@ -4,96 +4,130 @@ import eslint from '@eslint/js';
 import tslint from 'typescript-eslint';
 import obsidianmdlint from 'eslint-plugin-obsidianmd';
 import tsParser from '@typescript-eslint/parser';
+import stylistic from '@stylistic/eslint-plugin';
 
-const ignored = [
+const ignoredFiles = [
 	'**/node_modules/',
 	'**/libs/',
 	'**/dist/',
 	'**/*.{js,mjs}'
 ];
 
-const obsidianGlobals = {
-	i18next: 'readonly'
+const ignoredWords = [
+	'Better Embedded Canvas',
+	'“Space”',
+	'“Settings → Core plugins”'
+];
+
+const stylisticConfig = stylistic.configs.customize({
+	blockSpacing: true,
+	braceStyle: '1tbs',
+	commaDangle: 'never',
+	indent: 'tab',
+	jsx: false,
+	quoteProps: 'consistent-as-needed',
+	quotes: 'single',
+	semi: true
+});
+
+const reconfiguredRules = {
+	'no-unused-vars': 'off',
+	'one-var': [
+		'error',
+		'never'
+	],
+	'prefer-const': 'error',
+	'@typescript-eslint/consistent-type-imports': 'error',
+	'@typescript-eslint/explicit-function-return-type': [
+		'error', { allowExpressions: true }
+	],
+	'@typescript-eslint/explicit-member-accessibility': 'error',
+	'@typescript-eslint/no-confusing-void-expression': [
+		'error', {
+			ignoreVoidOperator: true,
+			ignoreArrowShorthand: true
+		}
+	],
+	'@typescript-eslint/no-empty-function': 'off',
+	'@typescript-eslint/no-import-type-side-effects': 'error',
+	'@typescript-eslint/no-unused-vars': [
+		'error', { argsIgnorePattern: '^_' }
+	],
+	'@typescript-eslint/prefer-readonly': 'error',
+	'@typescript-eslint/restrict-template-expressions': [
+		'error', { allowNumber: true }
+	],
+	'@stylistic/arrow-parens': [
+		'error', 'as-needed'
+	],
+	'@stylistic/brace-style': 'off',
+	'@stylistic/no-mixed-operators': 'off',
+	'@stylistic/no-trailing-spaces': [
+		'error', { ignoreComments: true }
+	],
+	'@stylistic/operator-linebreak': [
+		'error', 'after', {
+			overrides: {
+				'?': 'before',
+				':': 'before',
+				'|': 'before'
+			}
+		}
+	]
 };
 
-const mainLintConfig = {
+const reconfiguredLangOptions = {
+	parser: tsParser,
+	parserOptions: {
+		projectService: true,
+		tsconfigRootDir: import.meta.dirname
+	},
+	ecmaVersion: 'latest',
+	sourceType: 'module'
+};
+
+const scriptLinter = {
 	files: [
-		'**/*.{ts,mts}'
+		'scripts/**/*.{ts,mts}'
 	],
-	ignores: ignored,
+	ignores: ignoredFiles,
 	extends: [
 		eslint.configs.recommended,
 		...tslint.configs.strictTypeChecked,
-		...tslint.configs.stylisticTypeChecked
+		...tslint.configs.stylisticTypeChecked,
+		stylisticConfig
 	],
 	languageOptions: {
-		globals: { ...globals.node },
-		parser: tsParser,
-		parserOptions: {
-			projectService: true,
-			tsconfigRootDir: import.meta.dirname
-		},
-		ecmaVersion: 'latest',
-		sourceType: 'module'
+		...reconfiguredLangOptions,
+		globals: { ...globals.node }
 	},
-	rules: {
-		'prefer-const': 'off',
-		'no-unused-vars': 'off',
-		'no-unused-labels': 'off',
-		'no-undef': 'off',
-		'no-prototype-builtins': 'off',
-		'no-cond-assign': 'off',
-		'@typescript-eslint/await-thenable': 'off',
-		'@typescript-eslint/restrict-template-expressions': 'off',
-		'@typescript-eslint/no-empty-function': 'off',
-		'@typescript-eslint/no-unsafe-argument': 'off',
-		'@typescript-eslint/no-unsafe-assignment': 'off',
-		'@typescript-eslint/no-unsafe-member-access': 'off',
-		'@typescript-eslint/no-unsafe-call': 'off',
-		'@typescript-eslint/no-unused-vars': [
-			'error', { args: 'none' },
-		],
-		'@typescript-eslint/no-confusing-void-expression': [
-			'error', {
-				ignoreVoidOperator: true,
-				ignoreArrowShorthand: true
-			}
-		],
-		'@typescript-eslint/no-non-null-assertion': 'warn'
-	}
+	rules: reconfiguredRules
 };
 
-const obsidianLintConfig = {
+const sourceLinter = {
 	files: [
-		'src/*.ts'
+		'src/**/*.ts'
 	],
-	ignores: ignored.concat([
-		'scripts/',
-		'**/*.d.ts'
-	]),
+	ignores: ignoredFiles,
 	extends: [
+		stylisticConfig,
 		...obsidianmdlint.configs.recommended
 	],
 	languageOptions: {
-		globals: obsidianGlobals
+		...reconfiguredLangOptions,
+		globals: {
+			i18next: 'readonly'
+		}
 	},
 	rules: {
-		'@typescript-eslint/restrict-template-expressions': 'off',
+		...reconfiguredRules,
 		'obsidianmd/ui/sentence-case': [
-			'error', { brands: [
-				'Better Embedded Canvas',
-				'“Space”',
-				'“Settings → Core plugins”'
-			]}
+			'error', { brands: [...ignoredWords] }
 		],
 		'obsidianmd/ui/sentence-case-locale-module': [
-			'error', { brands: [
-				'Better Embedded Canvas',
-				'“Space”',
-				'“Settings → Core plugins”'
-			]}
+			'error', { brands: [...ignoredWords] }
 		]
 	}
 };
 
-export default defineConfig(mainLintConfig, obsidianLintConfig);
+export default defineConfig(scriptLinter, sourceLinter);
