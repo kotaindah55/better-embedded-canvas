@@ -1,4 +1,5 @@
 export default {
+	noNodeFound: 'Kartu tidak ada',
 	tooltipOpenCanvas: 'Buka kanvas',
 	tooltipEnableInteraction: 'Nyalakan interaksi',
 	tooltipDisableInteraction: 'Matikan interaksi',
@@ -27,9 +28,17 @@ export default {
 			name: 'Tekan “Spasi” untuk menggeser',
 			desc: 'Tekan “Spasi” dan seret kanvas yang disematkan untuk menggesernya. Kanvas yang disematkan di dalam kanvas lain, baik secara langsung maupun melalui catatan yang disematkan, tidak dapat menggunakan metode ini.'
 		},
+		nestedCanvas: {
+			name: 'Kanvas dalam kanvas',
+			desc: 'Sematkan kanvas interaktif di dalam kanvas. Nonaktifkan fitur ini jika ingin menyematkan kanvas statis.'
+		},
+		maxEmbedDepth: {
+			name: 'Kedalaman penyematan',
+			desc: 'Seberapa dalam penyematan kanvas di dalam catatan atau kanvas lain. Setel ke 0 untuk menggunakan kanvas static secara paksa (sebagaimana yang kamu lihat ketika plugin ini dinonaktifkan).'
+		},
 		embedNodeContentOnly: {
 			name: 'Hanya sematkan konten dari kartu',
-			desc: 'Cukup sematkan konten kartu tanpa menampilkan antarmuka kanvas. Tidak berlaku pada kartu grup.'
+			desc: 'Cukup sematkan konten kartu tanpa menampilkan antarmuka kanvas interaktif. Tidak berlaku pada kartu grup.'
 		},
 		embedGroupContentOnly: {
 			name: 'Sematkan konten grup tanpa grupnya',

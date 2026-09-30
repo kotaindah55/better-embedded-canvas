@@ -1,4 +1,5 @@
 export default {
+	noNodeFound: 'Card does not exist',
 	tooltipOpenCanvas: 'Open canvas',
 	tooltipEnableInteraction: 'Enable interaction',
 	tooltipDisableInteraction: 'Disable interaction',
@@ -27,9 +28,17 @@ export default {
 			name: 'Press “Space” key to pan',
 			desc: 'Press “Space” key and drag the embedded canvas to move it. Canvas that is embedded inside another canvas, whether directly or via an embedded note, cannot use this method.'
 		},
+		nestedCanvas: {
+			name: 'Nested canvas',
+			desc: 'Embed interactive canvas inside another canvas. Disable it to embed static canvas instead.'
+		},
+		maxEmbedDepth: {
+			name: 'Embedding depth',
+			desc: 'How deeply can a canvas be embedded within note or another canvas. Set it to 0 to forcibly use static canvas (as you would get when you disable this plugin).'
+		},
 		embedNodeContentOnly: {
 			name: 'Embed card content only',
-			desc: 'Embed only content of a canvas card instead of preserving the whole canvas interface. This does not apply to group cards.'
+			desc: 'Embed only content of a canvas card instead of preserving the whole interface of interactive canvas. This does not apply to group cards.'
 		},
 		embedGroupContentOnly: {
 			name: 'Embed cards without its group',

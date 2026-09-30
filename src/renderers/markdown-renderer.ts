@@ -2,6 +2,7 @@ import type { CanvasData } from 'obsidian/canvas';
 import { Component, MarkdownRenderer } from '../obsidian';
 import type { CanvasEmbed, CanvasEmbedRenderer } from '../embed';
 import { lifecycle } from '../utils';
+import { t } from '../i18n';
 
 /**
  * Render the content of single node instead preserving whole canvas
@@ -47,7 +48,7 @@ export class CanvasEmbedMarkdownRenderer extends Component implements CanvasEmbe
 		// Only use the first node.
 		if (data.nodes[0]) {
 			const node = data.nodes[0];
-			let text = 'Card does not exist';
+			let text = t('noCardFound');
 
 			switch (node.type) {
 				case 'text': {

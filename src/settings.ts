@@ -25,15 +25,6 @@ export interface BetterEmbeddedCanvasSettings {
 	 */
 	spaceKeyToPan: boolean;
 	/**
-	 * Embed only content of a canvas node instead of preserving the whole
-	 * canvas interface. This does not apply to group node.
-	 */
-	embedNodeContentOnly: boolean;
-	/**
-	 * Omit group node while only show its content.
-	 */
-	embedGroupContentOnly: boolean;
-	/**
 	 * Embed canvas inside another canvas.
 	 */
 	nestedCanvas: boolean;
@@ -42,6 +33,15 @@ export interface BetterEmbeddedCanvasSettings {
 	 * canvas.
 	 */
 	maxEmbedDepth: number;
+	/**
+	 * Embed only content of a canvas node instead of preserving the whole
+	 * canvas interface. This does not apply to group node.
+	 */
+	embedNodeContentOnly: boolean;
+	/**
+	 * Omit group node while only show its content.
+	 */
+	embedGroupContentOnly: boolean;
 }
 
 export type BetterEmbeddedCanvasSettingKey = keyof BetterEmbeddedCanvasSettings;
@@ -89,6 +89,25 @@ export class BetterEmbeddedCanvasSettingTab extends PluginSettingTab {
 						control: {
 							type: 'toggle',
 							key: 'spaceKeyToPan'
+						}
+					},
+					{
+						name: t('setting.nestedCanvas.name'),
+						desc: t('setting.nestedCanvas.desc'),
+						control: {
+							type: 'toggle',
+							key: 'nestedCanvas'
+						}
+					},
+					{
+						name: t('setting.maxEmbedDepth.name'),
+						desc: t('setting.maxEmbedDepth.desc'),
+						control: {
+							type: 'number',
+							key: 'maxEmbedDepth',
+							min: 0,
+							max: 5,
+							step: 1
 						}
 					}
 				]
@@ -143,6 +162,25 @@ export class BetterEmbeddedCanvasSettingTab extends PluginSettingTab {
 						.setValue(this.getControlValue('spaceKeyToPan'))
 						.onChange(this.setControlValue.bind(this, 'spaceKeyToPan'))
 					)
+				)
+				// Nested canvas
+				.addSetting(row => void row
+					.setName(t('setting.nestedCanvas.name'))
+					.setDesc(t('setting.nestedCanvas.desc'))
+					.addToggle(comp => comp
+						.setValue(this.getControlValue('nestedCanvas'))
+						.onChange(this.setControlValue.bind(this, 'nestedCanvas'))
+					)
+				)
+				// Embedding depth
+				.addSetting(row => void row
+					.setName(t('setting.maxEmbedDepth.name'))
+					.setDesc(t('setting.maxEmbedDepth.desc'))
+					.addSlider(comp => comp
+						.setLimits(0, 5, 1)
+						.setValue(this.getControlValue('maxEmbedDepth'))
+						.onChange(this.setControlValue.bind(this, 'maxEmbedDepth'))
+					)
 				);
 
 			new SettingGroup(this.containerEl)
@@ -183,6 +221,25 @@ export class BetterEmbeddedCanvasSettingTab extends PluginSettingTab {
 				.addToggle(comp => comp
 					.setValue(this.getControlValue('spaceKeyToPan'))
 					.onChange(this.setControlValue.bind(this, 'spaceKeyToPan'))
+				);
+
+			// Nested canvas
+			new Setting(this.containerEl)
+				.setName(t('setting.nestedCanvas.name'))
+				.setDesc(t('setting.nestedCanvas.desc'))
+				.addToggle(comp => comp
+					.setValue(this.getControlValue('nestedCanvas'))
+					.onChange(this.setControlValue.bind(this, 'nestedCanvas'))
+				);
+
+			// Embedding depth
+			new Setting(this.containerEl)
+				.setName(t('setting.maxEmbedDepth.name'))
+				.setDesc(t('setting.maxEmbedDepth.desc'))
+				.addSlider(comp => comp
+					.setLimits(0, 5, 1)
+					.setValue(this.getControlValue('maxEmbedDepth'))
+					.onChange(this.setControlValue.bind(this, 'maxEmbedDepth'))
 				);
 
 			// Card embed
@@ -355,9 +412,9 @@ function getDefaultSettings(): BetterEmbeddedCanvasSettings {
 	return {
 		showCanvasName: true,
 		spaceKeyToPan: true,
-		embedNodeContentOnly: true,
-		embedGroupContentOnly: true,
 		nestedCanvas: true,
-		maxEmbedDepth: 1
+		maxEmbedDepth: 1,
+		embedNodeContentOnly: true,
+		embedGroupContentOnly: true
 	};
 }
