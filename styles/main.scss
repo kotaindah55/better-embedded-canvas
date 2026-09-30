@@ -1,11 +1,15 @@
 body {
 	--embedded-canvas-min-height: 300px;
+	--embedded-canvas-height: var(--embedded-canvas-min-height);
 	--embedded-canvas-border-width: 1px;
 	--embedded-canvas-border-color: var(--background-modifier-border);
+	--embedded-canvas-border-radius: var(--radius-m);
 }
 
 .canvas-embed.better-canvas-embed {
-	&.internal-embed > .canvas-content > .canvas-wrapper {
+	--embedded-canvas-minimap-height: 100%;
+
+	&.internal-embed > .canvas-embed-content > .canvas-wrapper {
 		position: relative;
 	}
 
@@ -14,10 +18,10 @@ body {
 		cursor: pointer;
 	}
 
-	& > .canvas-content {
-		height: var(--embedded-canvas-min-height);
+	& > .canvas-embed-content {
+		height: var(--embedded-canvas-height);
 		border: var(--embedded-canvas-border-width) solid var(--embedded-canvas-border-color);
-		border-radius: var(--radius-m);
+		border-radius: var(--embedded-canvas-border-radius);
 		overflow: hidden;
 
 		& > .canvas-wrapper > .canvas-controls {
@@ -50,5 +54,9 @@ body {
 
 	.popover.hover-popover > .markdown-embed > .markdown-embed-content & .markdown-preview-view {
 		padding: 0 var(--size-4-4);
+	}
+
+	& > .canvas-minimap {
+		height: var(--embedded-canvas-minimap-height);
 	}
 }
