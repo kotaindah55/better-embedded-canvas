@@ -4,14 +4,15 @@ import type {
 	CanvasEdgeData,
 	CanvasGroupData
 } from 'obsidian/canvas';
-import type {
-	App,
-	Canvas,
-	EmbedComponent,
-	EmbedCreator,
-	InternalPlugin,
-	InternalPluginId,
-	Point
+import {
+	type App,
+	type Canvas,
+	type EmbedComponent,
+	type EmbedCreator,
+	type InternalPlugin,
+	type InternalPluginId,
+	type Point,
+	Component
 } from './obsidian';
 
 /**
@@ -85,6 +86,33 @@ export function toPx(value: number): string {
 }
 
 /**
+ * Create a component that will run given callbacks on loaded/unloaded.
+ */
+export function lifecycle(onload?: () => void, onunload?: () => void): Component {
+	let component = new Component();
+	if (onload) component.onload = onload;
+	if (onunload) component.onunload = onunload;
+	return component;
+}
+
+/**
+ * Run the callback once the element is inserted to the DOM. Has the
+ * similiar function with `Node.prototype.onNodeInserted()`.
+ * 
+ * @param el
+ * @param cb Callback that acts as a handler.
+ * @param unregisterer The handler will be removed if the given component
+ * is getting unloaded.
+ */
+export function onceElInserted(el: HTMLElement, cb: () => void, unregisterer?: Component): void {
+	let observer = lifecycle(undefined, el.onNodeInserted(() => {
+		cb();
+		unregisterer?.removeChild(observer);
+	}, true));
+	unregisterer?.addChild(observer);
+}
+
+/**
  * Track pointer activity and call the handler corresponding to the fired
  * event. It is one-time function. Once the pointer is released, either
  * being ended or cancelled, or the tracking is aborted manually, the
@@ -140,6 +168,8 @@ export function trackPointer(startEvt: PointerEvent, handlers: {
 	let { win } = startEvt,
 		abortController = new AbortController();
 
+	// Handler should be marked as started as soon as possible when the
+	// threshold is 0.
 	let started = startThreshold === 0,
 		startPoint = pointerToPoint(startEvt);
 
