@@ -412,7 +412,7 @@ function getDefaultSettings(): BetterEmbeddedCanvasSettings {
 	return {
 		showCanvasName: true,
 		spaceKeyToPan: true,
-		nestedCanvas: true,
+		nestedCanvas: false,
 		maxEmbedDepth: 1,
 		embedNodeContentOnly: true,
 		embedGroupContentOnly: true
