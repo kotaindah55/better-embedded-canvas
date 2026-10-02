@@ -12,7 +12,7 @@ async function main(): Promise<void> {
 
 	if (!isValidVersion(manifest.version))
 		throw Error('Manifest use invalid version');
-	if (compareVersions(targetVersion, manifest.version) >= 0)
+	if (compareVersions(targetVersion, manifest.version) <= 0)
 		throw Error('Current version is less than previous version');
 
 	const message = `chore: bump version to ${targetVersion}`;
