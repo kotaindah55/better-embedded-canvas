@@ -3,6 +3,7 @@ import {
 	type App,
 	type EmbedComponent,
 	type EmbedContext,
+	type PaneType,
 	type TAbstractFile,
 	type TFile,
 	Component,
@@ -145,10 +146,15 @@ export class CanvasEmbed extends Component implements EmbedComponent {
 	/**
 	 * Open canvas file on a tab.
 	 * 
-	 * @param evt Translates an event into the type of pane that should open.
+	 * @param evt Mouse event or pane type. If given mouse event, the event
+	 * will be translated into pane type.
 	 */
-	public async open(evt?: PointerEvent): Promise<void> {
-		const leaf = this.app.workspace.getLeaf(Keymap.isModEvent(evt));
+	public async open(evtOrPane?: MouseEvent | PaneType | boolean): Promise<void> {
+		const paneType = typeof evtOrPane === 'object'
+			? Keymap.isModEvent(evtOrPane)
+			: evtOrPane;
+
+		const leaf = this.app.workspace.getLeaf(paneType);
 		await leaf.openFile(this.file);
 
 		// Select the node and zoom canvas to it.
