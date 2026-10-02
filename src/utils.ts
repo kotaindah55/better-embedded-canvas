@@ -1,3 +1,8 @@
+import {
+	type Tile,
+	type WidgetTile,
+	WidgetType
+} from '@codemirror/view';
 import type {
 	AllCanvasNodeData,
 	CanvasData,
@@ -83,6 +88,61 @@ export function beingExportedAsPDF(el: HTMLElement): boolean {
  */
 export function toPx(value: number): string {
 	return String(value) + 'px';
+}
+
+/**
+ * Get display text part from the wikilink.
+ * 
+ * @param wikilink It may be delimited with `[[` and `]]` or may not. It
+ * also may be an embed link
+ */
+export function getLinkDisplayText(wikilink: string): string {
+	if (wikilink.startsWith('[[') && wikilink.endsWith(']]'))
+		wikilink = wikilink.slice(2, -2);
+	else if (wikilink.startsWith('![[') && wikilink.endsWith(']]'))
+		wikilink = wikilink.slice(3, -2);
+
+	const firstBarIdx = wikilink.indexOf('|');
+	return firstBarIdx < 0 ? '' : wikilink.slice(firstBarIdx + 1);
+}
+
+/**
+ * Parse and break link display text down into several parts.
+ * 
+ * Display text is a part of wikilink which is placed after linktext,
+ * separated between them with `|`. `ipsum` in `[[Lorem|ipsum]]` and
+ * `Cat|300x400` in `[[cat.png|Cat|300x400]]` are display text.
+ */
+export function parseLinkDisplayText(displayText: string): {
+	/**
+	 * Actual text that will be displayed.
+	 */
+	title: string;
+	/**
+	 * Width data specified in diplay text.
+	 */
+	width: number | null;
+	/**
+	 * Height data specified in diplay text.
+	 */
+	height: number | null;
+} {
+	let title = displayText;
+	let width: number | null = null;
+	let height: number | null = null;
+
+	const lastBarIdx = displayText.lastIndexOf('|');
+	const mayBeSize = displayText.slice(lastBarIdx + 1);
+	const sizeData = EMBED_SIZE_SYNTAX_RE.exec(mayBeSize);
+
+	if (sizeData) {
+		const [, widthStr, heightStr] = sizeData;
+		title = displayText.slice(0, Math.max(lastBarIdx, 0));
+		width = parseInt(widthStr ?? '0');
+		height = heightStr ? parseInt(heightStr) : null;
+	}
+
+	return { title, width, height };
 }
 
 /**
@@ -242,6 +302,32 @@ export function trackPointer(startEvt: PointerEvent, handlers: {
 }
 
 /**
+ * Event-driven scroll. You would likely use this on element whose
+ * default srolling has been disabled, e.g. via `touch-action: none` on
+ * touchscreen devices, as a fallback.
+ * 
+ * It is one-time function. Thus, you need to call this function for each
+ * event emitted.
+ * 
+ * @param evt Determines where the scroll should start.
+ */
+export function fallbackScroll(evt: PointerEvent): void {
+	if (!evt.targetNode?.instanceOf(HTMLElement)) return;
+
+	const scrollable = findScrollable(evt.targetNode);
+	let lastEvt = evt;
+
+	trackPointer(evt, {
+		move: currEvt => {
+			const x = lastEvt.x - currEvt.x;
+			const y = lastEvt.y - currEvt.y;
+			scrollable.scrollBy(x, y);
+			lastEvt = currEvt;
+		}
+	}, 0);
+}
+
+/**
  * Prevent an event from propagating and having default behavior.
  */
 export function lockEvent(evt: Event): void {
@@ -314,6 +400,49 @@ export function getEdgesFromNodes(nodes: Record<string, AllCanvasNodeData>, canv
  */
 export function measureDistance(pointA: Point, pointB: Point): number {
 	return Math.hypot(pointA.x - pointB.x, pointA.y - pointB.y);
+}
+
+/**
+ * Get editor widget attached to the element.
+ */
+export function getEditorWidgetFromEl(el: HTMLElement): WidgetType | null {
+	const widgetView = el.cmTile ?? el.cmView;
+
+	if (widgetView && isWidgetView(widgetView)) {
+		return widgetView.widget;
+	} else {
+		return null;
+	}
+}
+
+const EMBED_SIZE_SYNTAX_RE = /^(\d+)(?:x(\d+))?$/;
+
+/**
+ * Whether the given `ContentView` is a `WidgetView`.
+ */
+function isWidgetView(contentView: Tile): contentView is WidgetTile {
+	return (
+		'widget' in contentView &&
+		contentView.widget instanceof WidgetType
+	);
+}
+
+/**
+ * Find nearest scrollable element from the given element.
+ */
+function findScrollable(el: HTMLElement): HTMLElement {
+	const win = el.win;
+	let curr: HTMLElement | null = el;
+
+	while (curr) {
+		const { overflow } = win.getComputedStyle(curr);
+		if (overflow.split(' ').every(val => val === 'auto' || val === 'scroll'))
+			return curr;
+
+		curr = curr.parentElement;
+	}
+
+	return win.document.documentElement;
 }
 
 /**

@@ -5,10 +5,19 @@ body {
 	--canvas-embed-border-width: 1px;
 	--canvas-embed-border-color: var(--background-modifier-border);
 	--canvas-embed-border-radius: var(--radius-m);
+	--canvas-embed-resizer-height: var(--size-4-2);
+	--canvas-embed-resizer-size: 3px;
+	--canvas-embed-resizer-color-hover: var(--interactive-accent);
+
+	&.is-resizing-canvas-embed {
+		cursor: ns-resize;
+	}
 }
 
 .canvas-embed.better-canvas-embed {
 	--canvas-embed-minimap-height: 100%;
+	// Omit gap between canvas and its resize handler.
+	position: relative;
 
 	&.internal-embed > .canvas-embed-content > .canvas-wrapper {
 		position: relative;
@@ -40,6 +49,7 @@ body {
 
 	& .canvas-wrapper {
 		&.mod-no-interaction {
+			// Enable swiping note over interaction-disabled canvas embed.
 			touch-action: auto;
 		}
 
@@ -57,7 +67,33 @@ body {
 		display: block;
 	}
 
+	& .canvas-embed-resizer {
+		position: absolute;
+		display: flex;
+		flex-direction: column;
+		height: var(--canvas-embed-resizer-height);
+		width: 100%;
+		bottom: 0;
+		padding-inline: var(--canvas-embed-border-radius);
+		cursor: ns-resize;
+		// Make drag-to-resize work on touchscreen devices.
+		touch-action: none;
+
+		& > .canvas-embed-resizer-handle {
+			height: var(--canvas-embed-resizer-size);
+			margin-top: auto;
+			background-color: transparent;
+			transition: background-color 200ms ease-in-out, border-color 200ms ease-in-out, opacity 200ms ease-in-out;
+		}
+
+		&:hover > .canvas-embed-resizer-handle,
+		&.mod-resizing > .canvas-embed-resizer-handle {
+			background-color: var(--canvas-embed-resizer-color-hover);
+		}
+	}
+
 	.popover.hover-popover > .markdown-embed > .markdown-embed-content & .markdown-preview-view {
+		// Prevent nodes from being shrinked in hover preview.
 		padding: 0 var(--size-4-4);
 	}
 }

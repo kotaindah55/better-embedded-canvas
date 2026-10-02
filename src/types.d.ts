@@ -6,10 +6,41 @@
  */
 
 import type { CanvasData, NodeType } from 'obsidian/canvas';
+import type { EditorView, Tile, WidgetTile, WidgetType } from '@codemirror/view';
 import type _i18next from 'i18next';
 
 declare global {
+	interface Element {
+		cmTile?: Tile | WidgetTile;
+		cmView?: Tile | WidgetTile;
+	}
+
 	const i18next: typeof _i18next;
+}
+
+declare module '@codemirror/view' {
+	/**
+	 * Attached to an element telling that the element belongs to CodeMirror
+	 * `EditorView`.
+	 * 
+	 * @see https://code.haverbeke.berlin/codemirror/view/src/branch/main/src/tile.ts
+	 * 
+	 * @typeonly
+	 */
+	abstract class Tile {
+		dom: HTMLElement | null;
+	}
+
+	/**
+	 * `ContentView` attached to an element that is a part of editor widget.
+	 * 
+	 * @see https://code.haverbeke.berlin/codemirror/view/src/branch/main/src/tile.ts
+	 * 
+	 * @typeonly
+	 */
+	class WidgetTile extends Tile {
+		widget: WidgetType;
+	}
 }
 
 declare module 'obsidian' {
@@ -86,6 +117,7 @@ declare module 'obsidian' {
 		canvasEl: HTMLElement;
 		canvasRect: CanvasRect;
 		cardMenuEl: HTMLElement;
+		config: CanvasConfig;
 		/**
 		 * Id of currently queued frame request. 0 if no queued frame request.
 		 */
@@ -109,6 +141,7 @@ declare module 'obsidian' {
 		 * Wraps `canvasEl`.
 		 */
 		wrapperEl: HTMLElement;
+		zoom: number;
 		zoomToFitQueued: boolean;
 		constructor(view: CanvasOwner);
 		/**
@@ -203,11 +236,17 @@ declare module 'obsidian' {
 		 * to add, change, or remove selection.
 		 */
 		updateSelection(selectCb: () => void): void;
+		zoomBy(factor: number): void;
 		/**
 		 * Zoom canvas to the given bounding box.
 		 */
 		zoomToBbox(bBox: BBox): void;
+		zoomToFit(): void;
 		zoomToSelection(): void;
+	}
+
+	interface CanvasConfig {
+		zoomMultiplier: number;
 	}
 
 	/**
@@ -316,6 +355,48 @@ declare module 'obsidian' {
 		getViewData(): string;
 		clear(): void;
 		getViewType(): string;
+	}
+
+	/**
+	 * Surprisingly, `Editor` is an abstract class, and it has only one
+	 * subclass, we name it `CMEditor`. This is because `Editor` is actually
+	 * library-agnostic based on its design. That means you can implement
+	 * this class while utilizing another editor component/library as the
+	 * underlying.
+	 * 
+	 * `CMEditor` uses CodeMirror 6 as the underlying.
+	 * 
+	 * @typeonly
+	 */
+	class CMEditor extends Editor {
+		cm: EditorView;
+		blur(): void;
+		exec(command: EditorCommandName): void;
+		focus(): void;
+		lastLine(): number;
+		lineCount(): number;
+		listSelections(): EditorSelection[];
+		getCursor(side?: 'from' | 'to' | 'head' | 'anchor'): EditorPosition;
+		getLine(line: number): string;
+		getRange(from: EditorPosition, to: EditorPosition): string;
+		getScrollInfo(): { top: number; left: number };
+		getSelection(): string;
+		getValue(): string;
+		hasFocus(): boolean;
+		offsetToPos(offset: number): EditorPosition;
+		posToOffset(pos: EditorPosition): number;
+		redo(): void;
+		refresh(): void;
+		replaceSelection(replacement: string, origin?: string): void;
+		replaceRange(replacement: string, from: EditorPosition, to?: EditorPosition, origin?: string): void;
+		setValue(content: string): void;
+		setSelection(anchor: EditorPosition, head?: EditorPosition): void;
+		setSelections(ranges: EditorSelectionOrCaret[], main?: number): void;
+		scrollTo(x?: number | null, y?: number | null): void;
+		scrollIntoView(range: EditorRange, center?: boolean): void;
+		transaction(tx: EditorTransaction, origin?: string): void;
+		undo(): void;
+		wordAt(pos: EditorPosition): EditorRange | null;
 	}
 
 	/**
@@ -436,6 +517,20 @@ declare module 'obsidian' {
 	}
 
 	/** @typeonly */
+	class EmbedWidget extends ParentWidget {
+		child?: EmbedComponent;
+		href: string;
+		title: string;
+	}
+
+	/** @typeonly */
+	class InteractiveWidget extends WidgetType {
+		end: number;
+		start: number;
+		toDOM(view: EditorView): HTMLElement;
+	}
+
+	/** @typeonly */
 	class InternalLinkEditorSuggest extends EditorSuggest<InternalLinkSuggestResult> {
 		suggestManager: InternalLinkSuggestManager;
 		getSuggestions(context: EditorSuggestContext): InternalLinkSuggestResult[] | Promise<InternalLinkSuggestResult[]>;
@@ -516,6 +611,14 @@ declare module 'obsidian' {
 		canvas: 'canvas';
 	}
 
+	/**
+	 * Base class for all editable markdown, wrapping `Editor` instance.
+	 */
+	class MarkdownEditor extends Component {
+		app: App;
+		editor: CMEditor;
+	}
+
 	interface Notice {
 		addButton(label: string, onClick: (evt: PointerEvent) => void): this;
 	}
@@ -527,6 +630,12 @@ declare module 'obsidian' {
 		| 'Legal'
 		| 'Letter'
 		| 'Tabloid';
+
+	/** @typeonly */
+	class ParentWidget extends InteractiveWidget {
+		app: App;
+		editor: MarkdownEditor;
+	}
 
 	interface PDFExportSettings {
 		/**

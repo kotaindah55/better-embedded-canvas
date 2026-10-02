@@ -3,6 +3,7 @@ import {
 	type App,
 	type EmbedComponent,
 	type EmbedContext,
+	type EmbedWidget,
 	type PaneType,
 	type TAbstractFile,
 	type TFile,
@@ -11,7 +12,7 @@ import {
 	setIcon
 } from './obsidian';
 import type { BetterEmbeddedCanvasPlugin } from './main';
-import { beingExportedAsPDF, insideCanvasNode, onceElInserted, toPx } from './utils';
+import { beingExportedAsPDF, getEditorWidgetFromEl, insideCanvasNode, onceElInserted, toPx } from './utils';
 import type { BetterEmbeddedCanvasSettingKey, BetterEmbeddedCanvasSettings } from './settings';
 import { DEFAULT_PAGE_MARGIN, PageSize } from './page-sizes';
 import { CanvasView } from './hook';
@@ -19,6 +20,7 @@ import { CanvasEmbedInteractiveRenderer } from './renderers/interactive-renderer
 import { CanvasEmbedStaticRenderer } from './renderers/static-renderer';
 import { CanvasEmbedMarkdownRenderer } from './renderers/markdown-renderer';
 import store from './store';
+import type { WidgetType } from '@codemirror/view';
 
 const enum CanvasEmbedMode {
 	Interactive = 'interactive',
@@ -47,6 +49,10 @@ export class CanvasEmbed extends Component implements EmbedComponent {
 
 	private mode: CanvasEmbedMode | null;
 	private renderer: CanvasEmbedRenderer | null;
+
+	public get linktext(): string {
+		return this.ctx.linktext ?? this.file.path;
+	}
 
 	public get depth(): number {
 		return this.ctx.depth;
@@ -100,6 +106,7 @@ export class CanvasEmbed extends Component implements EmbedComponent {
 	}
 
 	public override onload(): void {
+		// Register event handlers.
 		this.app.vault.on('modify', this.onModify.bind(this));
 		this.plugin.settingManager.on('settings-changed', this.onSettingsChange.bind(this));
 		this.attachDragHandler();
@@ -111,6 +118,7 @@ export class CanvasEmbed extends Component implements EmbedComponent {
 
 		store.storeCanvasEmbed(this);
 
+		// Detect if this embed is inside prerendered PDF that is being exported.
 		if (beingExportedAsPDF(this.containerEl) && !insideCanvasNode(this.containerEl)) {
 			this.relayoutForPdf();
 		}
@@ -176,6 +184,16 @@ export class CanvasEmbed extends Component implements EmbedComponent {
 	}
 
 	/**
+	 * Get editor widget that holds this embed.
+	 */
+	public getEditorWidget(): EmbedWidget | null {
+		const widget = getEditorWidgetFromEl(this.containerEl);
+		return widget && isCanvasEmbedWidget(widget)
+			? widget
+			: null;
+	}
+
+	/**
 	 * Parse canvas raw data and render the embed from it.
 	 */
 	private async parse(raw: string): Promise<void> {
@@ -199,6 +217,8 @@ export class CanvasEmbed extends Component implements EmbedComponent {
 
 					if (target.type == 'group') {
 						const grouped = cache.groups[target.id];
+						// Also include the group node itself if embedGroupContentOnly is set to
+						// false.
 						if (!this.settings.embedGroupContentOnly)
 							serialized.nodes.push(target);
 						if (grouped) {
@@ -228,14 +248,17 @@ export class CanvasEmbed extends Component implements EmbedComponent {
 			this.headerEl.setAttr('data-sub-header', subHeader);
 		}
 
+		this.updateHeader();
+		this.updateHeight();
+
 		// Render the canvas.
 		this.setMode(mode);
-		this.updateHeader();
 		await this.renderer?.setData(serialized);
 	}
 
 	/**
-	 * Set current embed mode.
+	 * Set current embed mode. Only one renderer is allowed to sit in this
+	 * embed, reducing memory usage.
 	 */
 	private setMode(mode: CanvasEmbedMode): void {
 		if (this.mode === mode) return;
@@ -270,7 +293,7 @@ export class CanvasEmbed extends Component implements EmbedComponent {
 	 * That way, as a note is being exported, a new hidden `Window` is
 	 * created to be used as pre-rendering container. However, the size of the
 	 * `Window` does not match specified page size.
-	*/
+	 */
 	private relayoutForPdf(): void {
 		// Get last configured settings.
 		const exportSettings = this.app.vault.getConfig('pdfExportSettings');
@@ -412,4 +435,11 @@ export interface CanvasEmbedRenderer extends Component {
 	 * Set serialized `CanvasData` and render it.
 	 */
 	setData(data: CanvasData): Promise<void> | void;
+}
+
+function isCanvasEmbedWidget(widget: WidgetType): widget is EmbedWidget {
+	return (
+		'child' in widget &&
+		widget.child instanceof CanvasEmbed
+	);
 }

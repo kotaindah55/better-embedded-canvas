@@ -3,6 +3,9 @@ import {
 	type App,
 	type CanvasOwner,
 	type CanvasPluginInstance,
+	type CMEditor,
+	type EmbedWidget,
+	type Point,
 	type TFile,
 	Component,
 	Menu,
@@ -13,7 +16,17 @@ import {
 import type { CanvasEmbed, CanvasEmbedRenderer } from '../embed';
 import { Canvas } from '../hook';
 import { t } from '../i18n';
-import { beingExportedAsPDF, getInternalPlugin, onceElInserted } from '../utils';
+import {
+	beingExportedAsPDF,
+	fallbackScroll,
+	getInternalPlugin,
+	getLinkDisplayText,
+	lockEvent,
+	onceElInserted,
+	parseLinkDisplayText,
+	toPx,
+	trackPointer
+} from '../utils';
 import store from '../store';
 
 /**
@@ -36,6 +49,7 @@ export class CanvasEmbedInteractiveRenderer extends Component implements CanvasE
 	private readonly openCanvasBtnEl: HTMLElement;
 	private readonly toggleInteractionBtnEl: HTMLElement;
 	private readonly controlMenuBtnEl: HTMLElement;
+	private readonly resizerEl: HTMLElement;
 
 	/**
 	 * Indicates whether the canvas has not been loaded before.
@@ -51,6 +65,9 @@ export class CanvasEmbedInteractiveRenderer extends Component implements CanvasE
 	private compactControls: boolean;
 	private openControlMenu: Menu | null;
 
+	private editor: CMEditor | null;
+	private widget: EmbedWidget | null;
+
 	public constructor(owner: CanvasEmbed) {
 		super();
 
@@ -63,6 +80,9 @@ export class CanvasEmbedInteractiveRenderer extends Component implements CanvasE
 		this.isHovered = false;
 		this.compactControls = false;
 		this.openControlMenu = null;
+
+		this.editor = null;
+		this.widget = null;
 
 		this.zoomControlsEl = this.canvas.canvasControlsEl.firstElementChild as HTMLElement;
 		this.mainControlsEl = this.canvas.canvasControlsEl.createDiv({
@@ -90,6 +110,9 @@ export class CanvasEmbedInteractiveRenderer extends Component implements CanvasE
 			setTooltip(itemEl, t('buttonMoreOptions'));
 			itemEl.addEventListener('click', this.onOpenControlMenuBtnClick.bind(this));
 		});
+
+		this.resizerEl = createDiv('canvas-embed-resizer');
+		this.resizerEl.createDiv('canvas-embed-resizer-handle');
 	}
 
 	public get containerEl(): HTMLElement {
@@ -105,17 +128,31 @@ export class CanvasEmbedInteractiveRenderer extends Component implements CanvasE
 	}
 
 	public override onload(): void {
-		this.contentEl.addClass('canvas-embed-content');
+		if (!this.canvas.wrapperEl.isShown()) {
+			this.contentEl.append(this.canvas.wrapperEl);
+		}
 
-		// Register event handlers.
-		this.registerDomEvent(this.canvas.wrapperEl, 'pointerover', this.onPointerEnter.bind(this));
-		this.registerDomEvent(this.canvas.wrapperEl, 'pointerleave', this.onPointerLeave.bind(this));
-		this.registerDomEvent(this.contentEl.win, 'keydown', this.onGlobalKeydown.bind(this));
+		// Store attached editor and corresponding widget.
+		this.widget = this.owner.getEditorWidget();
+		this.editor = this.widget?.editor.editor ?? null;
+
+		if (this.widget && this.editor) {
+			this.containerEl.append(this.resizerEl);
+		}
+
+		this.contentEl.addClass('canvas-embed-content');
 
 		// Load the canvas and local configuration.
 		this.canvas.load();
 		this.canvas.noInteraction = Boolean(this.app.loadLocalStorage(`${this.owner.plugin.manifest.id}:no-interaction`));
 		this.toggleInteraction(!this.canvas.noInteraction);
+
+		// Register event handlers.
+		this.registerDomEvent(this.canvas.wrapperEl, 'pointerover', this.onPointerOver.bind(this));
+		this.registerDomEvent(this.canvas.wrapperEl, 'pointerleave', this.onPointerLeave.bind(this));
+		this.registerDomEvent(this.contentEl.win, 'keydown', this.onGlobalKeydown.bind(this)); // Must be registered after performing canvas.load().
+		this.registerDomEvent(this.resizerEl, 'pointerdown', this.onResizerPointerDown.bind(this));
+		this.registerDomEvent(this.resizerEl, 'contextmenu', lockEvent);
 	}
 
 	public override onunload(): void {
@@ -127,6 +164,9 @@ export class CanvasEmbedInteractiveRenderer extends Component implements CanvasE
 		this.canvas.wrapperEl.detach();
 
 		this.contentEl.removeClass('canvas-embed-content');
+		this.resizerEl.detach();
+		this.editor = null;
+		this.widget = null;
 	}
 
 	public setData(data: CanvasData): void {
@@ -185,6 +225,75 @@ export class CanvasEmbedInteractiveRenderer extends Component implements CanvasE
 	}
 
 	/**
+	 * Enable drag-to-resize on specific pointer event by tracking pointer
+	 * movement, than resizing the canvas based on the pointer location. It
+	 * should only be performed on editor-widget-based embed.
+	 */
+	private dragToResize(evt: PointerEvent): void {
+		if (!this.widget || !this.editor) return;
+
+		const threshold = evt.pointerType === 'touch' ? 0 : 5;
+		let newHeight: number | null = null;
+		evt.preventDefault();
+
+		trackPointer(evt, {
+			start: () => {
+				// Keep the handler visible in touchscreen devices.
+				this.resizerEl.addClass('mod-resizing');
+				// Display consistently resize-icon on the cursor.
+				this.resizerEl.doc.body.addClass('is-resizing-canvas-embed');
+			},
+
+			move: evt => {
+				// Calculate changed canvas height.
+				const contentRect = this.contentEl.getBoundingClientRect();
+				const distance = evt.y - contentRect.bottom;
+				newHeight = Math.round(contentRect.height + distance);
+				// Temporarily set the height of the canvas.
+				this.contentEl.setCssStyles({ height: toPx(newHeight) });
+
+				// Prevent text cursor jump unexpectedly during resizing.
+				evt.preventDefault();
+			},
+
+			end: evt => {
+				const contentRect = this.contentEl.getBoundingClientRect();
+				const distance = evt.y - contentRect.bottom;
+				newHeight = Math.round(contentRect.height + distance);
+
+				if (this.widget && this.editor) {
+					const from = this.editor.offsetToPos(this.widget.start);
+					const to = this.editor.offsetToPos(this.widget.end);
+					const wikilink = this.editor.getRange(from, to);
+					const displayData = parseLinkDisplayText(getLinkDisplayText(wikilink));
+
+					let linktext = this.owner.linktext;
+					if (displayData.title) linktext += `|${displayData.title}`;
+
+					// Set the height data to the link, and so to the canvas.
+					//
+					// We do not use Editor.replaceRange() because it will scroll into the
+					// selection unwillingly.
+					this.editor.cm.dispatch({
+						changes: {
+							from: this.widget.start,
+							to: this.widget.end,
+							insert: `![[${linktext}|${newHeight}]]`
+						}
+					});
+					this.canvas.zoomToFit();
+				}
+			},
+
+			cleanup: () => {
+				this.contentEl.setCssStyles({ height: '' });
+				this.resizerEl.removeClass('mod-resizing');
+				this.resizerEl.doc.body.removeClass('is-resizing-canvas-embed');
+			}
+		}, threshold);
+	}
+
+	/**
 	 * Handle size change notified by resize observer.
 	 */
 	private onResize(): void {
@@ -197,6 +306,41 @@ export class CanvasEmbedInteractiveRenderer extends Component implements CanvasE
 		this.zoomControlsEl.toggle(!this.compactControls && this.isInteractionEnabled());
 
 		this.canvas.onResize();
+	}
+
+	private onResizerPointerDown(evt: PointerEvent): void {
+		if (evt.pointerType === 'touch') {
+			const startEvt = evt;
+			const win = startEvt.win;
+
+			// User needs to hold the touch for a certain duration.
+			const timer = win.setTimeout(() => {
+				abortTracker();
+				// Notice that user is able to do drag-to-resize.
+				ripple(win, evt);
+				win.navigator.vibrate(100);
+				this.dragToResize(startEvt);
+			}, 800);
+
+			const abortTracker = trackPointer(evt, {
+				cleanup: () => win.clearTimeout(timer),
+				// If user moves the touch before specified duration, drag-to-resize
+				// will be dismissed.
+				move: moveEvt => {
+					abortTracker();
+					// Because touch-action is set to none, user with touchscreen device
+					// cannot perform swipe-to-scroll from the resizer. It could restrain
+					// user interaction with the note unintuitively and create frustating
+					// annoyances.
+					//
+					// Therefore, we should implement a scroll fallback as replacement.
+					fallbackScroll(moveEvt);
+				}
+			});
+		}
+
+		else if (evt.pointerType === 'mouse')
+			this.dragToResize(evt);
 	}
 
 	private onOpenControlMenuBtnClick(): void {
@@ -213,7 +357,7 @@ export class CanvasEmbedInteractiveRenderer extends Component implements CanvasE
 		this.app.saveLocalStorage(`${this.owner.plugin.manifest.id}:no-interaction`, !enable);
 	}
 
-	private onPointerEnter(): void {
+	private onPointerOver(): void {
 		this.isHovered = true;
 	}
 
@@ -338,4 +482,38 @@ function getCanvas(owner: CanvasOwner): Canvas {
 	canvas.canvasEl.dir = 'ltr';
 
 	return canvas;
+}
+
+/**
+ * Create ripple effect on desired location.
+ */
+function ripple(win: Window, pos: Point): void {
+	const rippleEl = win.document.body.createDiv();
+	const duration = 200;
+	const timer = win.setTimeout(() => cleanup(), duration + 50);
+
+	const cleanup = (): void => {
+		win.clearTimeout(timer);
+		rippleEl.detach();
+	};
+
+	rippleEl.setCssStyles({
+		position: 'absolute',
+		transform: 'translate(-50%,-50%)',
+		left: toPx(pos.x),
+		top: toPx(pos.y),
+		boxShadow: '0 0 6px 20px var(--color-accent)',
+		borderRadius: '200px',
+		zIndex: '999'
+	});
+
+	const anim = rippleEl.animate({
+		width: ['0px', '200px'],
+		height: ['0px', '200px'],
+		opacity: ['1', '0'],
+		easing: ['ease-out']
+	}, { duration });
+
+	anim.addEventListener('finish', cleanup);
+	anim.addEventListener('cancel', cleanup);
 }

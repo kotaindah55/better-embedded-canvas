@@ -17,6 +17,10 @@ export class CanvasEmbedMarkdownRenderer extends Component implements CanvasEmbe
 	 */
 	private readonly holder: Component;
 
+	/**
+	 * Because this renderer only render single node, the source path must be
+	 * the canvas file.
+	 */
 	private get sourcePath(): string {
 		return this.owner.file.path;
 	}
