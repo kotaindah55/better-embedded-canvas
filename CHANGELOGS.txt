@@ -1,3 +1,15 @@
+[1.2.0]
+### New features
+
+- Adjust embedded canvas height by dragging its bottom side. Works on desktop and mobile.
+- Adjust how deeply can canvas be embedded within notes and canvases.
+- Embedding interactive canvas inside another canvas is now disabled by default, due to performance reasons.
+  You can enable it under **Settings → Better Embedded Canvas → Nested canvas**.
+
+### Bug fix
+
+- Canvas creates a card from clipboard content upon clicking middle mouse button on Linux.
+---
 [1.1.0]
 ### New feature
 
