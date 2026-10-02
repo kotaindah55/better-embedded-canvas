@@ -29,6 +29,7 @@ export class CanvasEmbedStaticRenderer extends Component implements CanvasEmbedR
 		super();
 		this.owner = owner;
 		this.canvasEl = createSvg('svg', 'canvas-minimap');
+		this.canvasEl.addEventListener('dblclick', this.onDblClick.bind(this));
 	}
 
 	public override onload(): void {
@@ -45,6 +46,13 @@ export class CanvasEmbedStaticRenderer extends Component implements CanvasEmbedR
 	public setData(data: CanvasData): Promise<void> | void {
 		this.canvasEl.empty();
 		renderStaticCanvas(data, this.canvasEl);
+	}
+
+	/**
+	 * Open the canvas file on double click.
+	 */
+	private onDblClick(evt: MouseEvent): void {
+		void this.owner.open(evt);
 	}
 }
 
