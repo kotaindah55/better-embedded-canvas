@@ -19,7 +19,7 @@ Give your embedded canvas better display and interactivity.
 - **Canvas embedding**: Embed canvas or specific card while preserving original canvas view interface.
 - **Hover preview**: Preview canvas by hovering the cursor over a link or file.
 - **Basic interaction**: Navigate using panning and zooming across the canvas.
-- **Advanced canvas support**: Support advanced customization from [Advanced Canvas][advanced-canvas].
+- **Advanced Canvas support**: Support advanced customization from [Advanced Canvas][advanced-canvas].
 
 ## Installation
 
@@ -38,7 +38,21 @@ Give your embedded canvas better display and interactivity.
 2. Place `manifest.json`, `main.js`, and `style.css` from the latest release into the folder.
 3. Enable it through the "Community plugin" setting tab.
 
-### Using [BRAT][].
+### Using [BRAT][]
+
+## Terminology
+
+- **Canvas**: Visual and spatial note-taking that uses cards and connection lines.
+- **Card**: Object within canvas that displays text, files, web pages, or acts as group of other cards. Technically referred as **node**.
+    - **Text card**: Card that displays text and does not reference any file. Technically referred as **text node**.
+    - **File card**: Card that references a file, e.g. notes and media files, and displays its content if supported. Technically referred as **file node**.
+    - **Webpage card**: Card that references a link and displays it as a webpage. Technically referred as **link node**.
+    - **Group card**: Card that groups other cards, thus they can be moved simultaneously along with moving their group card. Technically referred as **group node**.
+- **Connection lines**: Line that connects between cards. Technically referred as **edge**.
+- **Interactive canvas** (or usually just referred as **canvas**): Canvas which user can interact with, i.e. panning, zooming, selecting, etc.
+- **Static canvas** (or **canvas minimap**): Canvas which user cannot interact with, and displays cards within without their content. This is default behavior when embedding a canvas in Obsidian.
+- **Canvas view**: Intractive canvas that is displayed as a whole tab. Mainly used by Obsidian to display and edit a canvas.
+- **Embedded canvas** (or **canvas embed**): Canvas that is embedded within a note or another canvas, or displayed as page preview. It can be either interactive or static.
 
 ## Features and Usage
 
@@ -62,9 +76,11 @@ To adjust the height of an embedded canvas, add a vertical bar (`|`) followed by
 
 By default, the height will be adjusted to 300. Therefore, `![[My canvas.canvas]]` has the same result as `![[My canvas.canvas|300]]`.
 
+For quick adjustment, you can drag the bottom side of the embedded canvas, or hold it for a moment first on touchscreen device, to adjust the height.
+
 > [!NOTE]
 >
-> Currently, Better Embedded Canvas limits the minimum height to 300. Any canvas height adjusted to less than 300 will be rounded up to 300. Therefore, `![[My canvas.canvas|200]]` has the same result as `![[My canvas.canvas|300]]`.
+> This drag-to-resize approach only applies to canvas embedded within note in editing view.
 
 #### Change the title
 
@@ -150,11 +166,11 @@ You can also embed a canvas from the canvas context menu:
 1. Right-click the canvas and then select **Add note from vault**.
 2. Select the canvas you want to embed.
 
-You can also drag a canvas from the File explorer, or an embedded canvas from a note, into the canvas.
+You can also drag a canvas from the File explorer, or an embedded canvas from a note, into another canvas.
 
 > [!WARNING]
 >
-> Try to avoid embedding a canvas in the canvas itself or any embedding that creates circular referencing as it can causes performance issue.
+> By default, embedding interactive canvas inside another canvas is disabled due to performance issue, especially when you have a lot of cards that show embedded canvases. If you still want this feature, you can enable it under **Settings → Better Embedded Canvas → Nested canvas**. See [this section](#tldr---how-deep-can-a-canvas-be-embedded).
 
 ### Preview a canvas
 
@@ -242,6 +258,35 @@ Nevertheless, you can have Better Embedded Canvas and Advanced Canvas enabled si
 > [!NOTE]
 >
 > Sometimes, right after enabling or disabling any of Better Embedded Canvas and Advanced Canvas, you will get a notification to reload all notes or to restart the app. It should only happen once until you enable or disable any of those two plugins.
+
+### TL;DR - How deep can a canvas be embedded
+
+Multiple canvases can be embedded within one another like a tree structure, something like this:
+
+```
+A.canvas --> B.canvas
+         \
+          --> C.canvas --> D.canvas --> E.canvas
+           \                        \
+            \                        --> F.canvas --> G.canvas
+             \
+              --> A.md --> B.md --> H.canvas
+                       \
+                        --> I.canvas
+```
+
+When you have such massive structure in your canvas, you will likely have significant performance impact due to frequent changes made within the DOM.
+
+You have two methods to solve this:
+
+- Disable embedding interactive canvas within another canvas completely under **Settings → Better Embedded Canvas → Nested canvas** (it is disabled by default).
+- Limit the embedding depth of the canvas under **Settings → Better Embedded Canvas → Embedding depth** (default to 1).
+
+From the example above:
+
+- If you set embedding depth to 1, only `B.canvas` and `C.canvas` that will be displayed as interactive canvases.
+- If you set it to 2, `D.canvas` and `I.canvas` will also be displayed as interactive canvases.
+- If you set it to 0, any embedded canvas will be displayed as static canvas, even within a note (behaves like when this plugin is not enabled or installed).
 
 ## Attribution
 
