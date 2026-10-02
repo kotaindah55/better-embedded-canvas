@@ -297,9 +297,10 @@ export class CanvasEmbed extends Component implements EmbedComponent {
 		// is stored as "width" attribute value.
 		const height = Number(this.containerEl.getAttr('width'));
 		const heightInPx = height ? toPx(height) : '';
+		// Only hardcode variables.
 		this.containerEl.setCssProps({
-			'--embedded-canvas-height': heightInPx,
-			'--embedded-canvas-minimap-height': heightInPx
+			'--canvas-embed-height': heightInPx,
+			'--canvas-embed-minimap-height': heightInPx
 		});
 	}
 

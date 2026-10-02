@@ -1,13 +1,14 @@
 body {
-	--embedded-canvas-min-height: 300px;
-	--embedded-canvas-height: var(--embedded-canvas-min-height);
-	--embedded-canvas-border-width: 1px;
-	--embedded-canvas-border-color: var(--background-modifier-border);
-	--embedded-canvas-border-radius: var(--radius-m);
+	// Enable user and style devs for ease customization.
+	--canvas-embed-min-height: 300px;
+	--canvas-embed-height: var(--canvas-embed-min-height);
+	--canvas-embed-border-width: 1px;
+	--canvas-embed-border-color: var(--background-modifier-border);
+	--canvas-embed-border-radius: var(--radius-m);
 }
 
 .canvas-embed.better-canvas-embed {
-	--embedded-canvas-minimap-height: 100%;
+	--canvas-embed-minimap-height: 100%;
 
 	&.internal-embed > .canvas-embed-content > .canvas-wrapper {
 		position: relative;
@@ -18,10 +19,14 @@ body {
 		cursor: pointer;
 	}
 
+	& > .canvas-minimap {
+		height: var(--canvas-embed-minimap-height);
+	}
+
 	& > .canvas-embed-content {
-		height: var(--embedded-canvas-height);
-		border: var(--embedded-canvas-border-width) solid var(--embedded-canvas-border-color);
-		border-radius: var(--embedded-canvas-border-radius);
+		height: var(--canvas-embed-height);
+		border: var(--canvas-embed-border-width) solid var(--canvas-embed-border-color);
+		border-radius: var(--canvas-embed-border-radius);
 		overflow: hidden;
 
 		& > .canvas-wrapper > .canvas-controls {
@@ -54,9 +59,5 @@ body {
 
 	.popover.hover-popover > .markdown-embed > .markdown-embed-content & .markdown-preview-view {
 		padding: 0 var(--size-4-4);
-	}
-
-	& > .canvas-minimap {
-		height: var(--embedded-canvas-minimap-height);
 	}
 }
