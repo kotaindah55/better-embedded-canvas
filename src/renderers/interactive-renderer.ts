@@ -114,7 +114,7 @@ export class CanvasEmbedInteractiveRenderer extends Component implements CanvasE
 
 		// Load the canvas and local configuration.
 		this.canvas.load();
-		this.canvas.noInteraction = Boolean(this.app.loadLocalStorage(`${this.owner.plugin.manifest.id}:no-interaction`) ?? true);
+		this.canvas.noInteraction = Boolean(this.app.loadLocalStorage(`${this.owner.plugin.manifest.id}:no-interaction`));
 		this.toggleInteraction(!this.canvas.noInteraction);
 	}
 
@@ -206,7 +206,7 @@ export class CanvasEmbedInteractiveRenderer extends Component implements CanvasE
 	}
 
 	private onInteractionBtnClick(): void {
-		const enable = this.canvas.noInteraction ?? false;
+		const enable = !!this.canvas.noInteraction;
 		// Toggle interaction on all embedded interactive canvases simultanously.
 		store.iterateCanvasEmbeds(embed => embed.toggleInteraction(enable));
 		// Save current configuration to the local storage.
@@ -224,7 +224,10 @@ export class CanvasEmbedInteractiveRenderer extends Component implements CanvasE
 	private onGlobalKeydown(evt: KeyboardEvent): void {
 		if (!this.owner.settings.spaceKeyToPan || !this.isHovered) return;
 		// Prevent scrolling when using space key to pan embedded canvas.
-		if (evt.key == ' ' && this.canvas.isHoldingSpace && !this.canvas.noInteraction)
+		// 
+		// This handler should be registered after the canvas is loaded.
+		// Otherwise, Canvas.isHoldingSpace has not been assigned to true yet.
+		if (evt.key === ' ' && this.canvas.isHoldingSpace && !this.canvas.noInteraction)
 			evt.preventDefault();
 	}
 
