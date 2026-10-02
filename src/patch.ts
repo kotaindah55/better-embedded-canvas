@@ -123,7 +123,8 @@ export function patchCanvasEditor(plugin: BetterEmbeddedCanvasPlugin): void {
 						}
 					},
 
-					cleanup: () => {
+					cleanup: started => {
+						if (!started) return;
 						store.removePannedCanvas(this);
 
 						// Do not open context menu once panning is ended.

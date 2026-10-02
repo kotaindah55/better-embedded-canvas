@@ -158,7 +158,7 @@ export function trackPointer(startEvt: PointerEvent, handlers: {
 	 * Place your cleanup operation here. Called after either `end()`,
 	 * `cancel()`, or returned aborter function is called.
 	 */
-	cleanup?(): void;
+	cleanup?(started: boolean): void;
 }, startThreshold = 5): () => void {
 	// Must be primary pointer in case of multi-pointing device.
 	if (!startEvt.isPrimary) return () => {};
@@ -177,7 +177,7 @@ export function trackPointer(startEvt: PointerEvent, handlers: {
 
 	function dispose(): void {
 		abortController.abort();
-		if (started) handlers.cleanup?.();
+		handlers.cleanup?.(started);
 	}
 
 	function onPointerMove(evt: PointerEvent): void {
