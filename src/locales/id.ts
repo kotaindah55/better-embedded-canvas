@@ -1,10 +1,10 @@
 export default {
 	noNodeFound: 'Kartu tidak ada',
+	toggleInteraction: 'Ubah interaksi',
 	tooltipOpenCanvas: 'Buka kanvas',
-	tooltipEnableInteraction: 'Nyalakan interaksi',
-	tooltipDisableInteraction: 'Matikan interaksi',
 	buttonReload: 'Muat ulang',
 	buttonDismiss: 'Abaikan',
+	buttonMoreOptions: 'Opsi lain',
 	editor: {
 		suggestion: {
 			noMatchedNode: 'Tidak ada kartu yang cocok'

@@ -5,6 +5,7 @@ import {
 	type CanvasPluginInstance,
 	type TFile,
 	Component,
+	Menu,
 	Platform,
 	setIcon,
 	setTooltip
@@ -34,6 +35,7 @@ export class CanvasEmbedInteractiveRenderer extends Component implements CanvasE
 	private readonly zoomControlsEl: HTMLElement;
 	private readonly openCanvasBtnEl: HTMLElement;
 	private readonly toggleInteractionBtnEl: HTMLElement;
+	private readonly controlMenuBtnEl: HTMLElement;
 
 	/**
 	 * Indicates whether the canvas has not been loaded before.
@@ -43,6 +45,11 @@ export class CanvasEmbedInteractiveRenderer extends Component implements CanvasE
 	 * Indicates whether a pointer is hovered over the canvas.
 	 */
 	private isHovered: boolean;
+	/**
+	 * Indicates whether using popout menu for controls.
+	 */
+	private compactControls: boolean;
+	private openControlMenu: Menu | null;
 
 	public constructor(owner: CanvasEmbed) {
 		super();
@@ -54,6 +61,8 @@ export class CanvasEmbedInteractiveRenderer extends Component implements CanvasE
 		this.resizeObserver = new ResizeObserver(this.onResize.bind(this));
 		this.firstLoad = true;
 		this.isHovered = false;
+		this.compactControls = false;
+		this.openControlMenu = null;
 
 		this.zoomControlsEl = this.canvas.canvasControlsEl.firstElementChild as HTMLElement;
 		this.mainControlsEl = this.canvas.canvasControlsEl.createDiv({
@@ -70,9 +79,16 @@ export class CanvasEmbedInteractiveRenderer extends Component implements CanvasE
 
 		// Button to toggle interaction.
 		this.toggleInteractionBtnEl = this.mainControlsEl.createDiv('canvas-control-item', itemEl => {
-			setIcon(itemEl, 'pointer');
+			setIcon(itemEl, 'lucide-pointer');
 			setTooltip(itemEl, t('tooltipDisableInteraction'), { placement: 'left' });
 			itemEl.addEventListener('click', this.onInteractionBtnClick.bind(this));
+		});
+
+		// Button to open control menu.
+		this.controlMenuBtnEl = this.mainControlsEl.createDiv('canvas-control-item', itemEl => {
+			setIcon(itemEl, 'lucide-more-vertical');
+			setTooltip(itemEl, t('buttonMoreOptions'));
+			itemEl.addEventListener('click', this.onOpenControlMenuBtnClick.bind(this));
 		});
 	}
 
@@ -132,8 +148,8 @@ export class CanvasEmbedInteractiveRenderer extends Component implements CanvasE
 		this.app.workspace.trigger('advanced-canvas:canvas-changed', this.canvas);
 	}
 
-	public onResize(): void {
-		this.canvas.onResize();
+	public isInteractionEnabled(): boolean {
+		return !this.canvas.noInteraction;
 	}
 
 	/**
@@ -144,12 +160,13 @@ export class CanvasEmbedInteractiveRenderer extends Component implements CanvasE
 		this.canvas.deselectAll();
 		this.canvas.noInteraction = !enable;
 		this.canvas.wrapperEl.toggleClass('mod-no-interaction', !enable);
+
 		// Show zoom control buttons.
-		this.zoomControlsEl.toggle(enable);
+		if (!this.compactControls) this.zoomControlsEl.toggle(enable);
 
 		// Change button appearance.
-		setIcon(this.toggleInteractionBtnEl, enable ? 'pointer' : 'pointer-off');
-		setTooltip(this.toggleInteractionBtnEl, t(`tooltip${enable ? 'Enable' : 'Disable'}Interaction`), { placement: 'left' });
+		setIcon(this.toggleInteractionBtnEl, `lucide-pointer${enable ? '' : '-off'}`);
+		setTooltip(this.toggleInteractionBtnEl, t(`toggleInteraction`), { placement: 'left' });
 	}
 
 	// Dummy methods. Added to prevent `undefined`-related errors.
@@ -165,6 +182,27 @@ export class CanvasEmbedInteractiveRenderer extends Component implements CanvasE
 		this.canvas.zoomToFitQueued = true;
 		this.firstLoad = false;
 		this.onResize();
+	}
+
+	/**
+	 * Handle size change notified by resize observer.
+	 */
+	private onResize(): void {
+		// Use popover menu for controls in short embed.
+		this.compactControls = this.contentEl.clientHeight < 250;
+
+		this.controlMenuBtnEl.toggle(this.compactControls);
+		this.openCanvasBtnEl.toggle(!this.compactControls);
+		this.toggleInteractionBtnEl.toggle(!this.compactControls);
+		this.zoomControlsEl.toggle(!this.compactControls && this.isInteractionEnabled());
+
+		this.canvas.onResize();
+	}
+
+	private onOpenControlMenuBtnClick(): void {
+		// Hide the menu if open.
+		if (this.openControlMenu) this.openControlMenu.hide();
+		else this.openMenu();
 	}
 
 	private onInteractionBtnClick(): void {
@@ -188,6 +226,80 @@ export class CanvasEmbedInteractiveRenderer extends Component implements CanvasE
 		// Prevent scrolling when using space key to pan embedded canvas.
 		if (evt.key == ' ' && this.canvas.isHoldingSpace && !this.canvas.noInteraction)
 			evt.preventDefault();
+	}
+
+	/**
+	 * Open popover menu providing canvas interaction controls, mostly those
+	 * that appear in upper-right corner of the canvas.
+	 */
+	private openMenu(): void {
+		const menu = new Menu();
+		this.openControlMenu = menu;
+
+		menu.addItem(item => item
+			.setTitle(t('tooltipOpenCanvas'))
+			.setIcon('lucide-maximize-2')
+			.setSection('open')
+			.onClick(() => this.owner.open())
+		);
+
+		menu.addItem(item => item
+			.setTitle(i18next.t('interface.menu.open-in-new-tab'))
+			.setIcon('lucide-file-plus')
+			.setSection('open')
+			.onClick(() => this.owner.open('tab'))
+		);
+
+		menu.addItem(item => item
+			.setTitle(i18next.t('interface.menu.open-to-the-right'))
+			.setIcon('lucide-separator-vertical')
+			.setSection('open')
+			.onClick(() => this.owner.open('split'))
+		);
+
+		menu.addItem(item => item
+			.setTitle(t('toggleInteraction'))
+			.setIcon('lucide-pointer')
+			.setSection('interaction')
+			.setChecked(this.isInteractionEnabled())
+			.onClick(this.onInteractionBtnClick.bind(this))
+		);
+
+		menu.addItem(item => item
+			.setTitle(i18next.t('commands.zoom-in'))
+			.setIcon('lucide-zoom-in')
+			.setSection('interaction')
+			.onClick(() => this.canvas.zoomBy(this.canvas.config.zoomMultiplier))
+		);
+
+		menu.addItem(item => item
+			.setTitle(i18next.t('commands.zoom-out'))
+			.setIcon('lucide-zoom-out')
+			.setSection('interaction')
+			.onClick(() => this.canvas.zoomBy(-this.canvas.config.zoomMultiplier))
+		);
+
+		menu.addItem(item => item
+			.setTitle(i18next.t('plugins.canvas.action-zoom-to-fit'))
+			.setIcon('lucide-maximize')
+			.setSection('interaction')
+			.onClick(() => this.canvas.zoomToFit())
+		);
+
+		menu.addItem(item => item
+			.setTitle(i18next.t('commands.reset-zoom'))
+			.setIcon('lucide-rotate-cw')
+			.setSection('interaction')
+			.onClick(() => this.canvas.zoomBy(-this.canvas.zoom))
+		);
+
+		// Use button position instead of pointer location.
+		const btnRect = this.controlMenuBtnEl.getBoundingClientRect();
+
+		// Unref the menu upon hide.
+		menu.register(() => this.openControlMenu = null);
+		menu.setParentElement(this.controlMenuBtnEl);
+		menu.showAtPosition({ x: btnRect.left, y: btnRect.bottom });
 	}
 }
 

@@ -1,10 +1,10 @@
 export default {
 	noNodeFound: 'Card does not exist',
+	toggleInteraction: 'Toggle interaction',
 	tooltipOpenCanvas: 'Open canvas',
-	tooltipEnableInteraction: 'Enable interaction',
-	tooltipDisableInteraction: 'Disable interaction',
 	buttonReload: 'Reload',
 	buttonDismiss: 'Dismiss',
+	buttonMoreOptions: 'More options',
 	editor: {
 		suggestion: {
 			noMatchedNode: 'No matched card'
