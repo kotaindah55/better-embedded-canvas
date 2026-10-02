@@ -31,13 +31,13 @@ export async function getVersionHistory(): Promise<VersionHistory> {
 }
 
 export async function updatePackageConfig(conf: PackageConfig): Promise<void> {
-	await fsPromises.writeFile(at('package.json'), JSON.stringify(conf));
+	await fsPromises.writeFile(at('package.json'), JSON.stringify(conf, undefined, '\t'));
 }
 
 export async function updateManifest(conf: PluginManifest): Promise<void> {
-	await fsPromises.writeFile(at('manifest.json'), JSON.stringify(conf));
+	await fsPromises.writeFile(at('manifest.json'), JSON.stringify(conf, undefined, '\t'));
 }
 
 export async function updateVersionHistory(conf: VersionHistory): Promise<void> {
-	await fsPromises.writeFile(at('versions.json'), JSON.stringify(conf));
+	await fsPromises.writeFile(at('versions.json'), JSON.stringify(conf, undefined, '\t'));
 }
