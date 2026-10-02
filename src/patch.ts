@@ -8,7 +8,7 @@ import {
 	setIcon
 } from './obsidian';
 import { Canvas, hookInternalLinkEditorSuggest } from './hook';
-import { CanvasEmbed } from './embed';
+import { CanvasEmbedInteractiveRenderer } from './renderers/interactive-renderer';
 import { ensureCanvasRect, lockEvent, trackPointer } from './utils';
 import { getComplexSuggestTemplate, getNodeSuggests } from './suggest';
 import type { BetterEmbeddedCanvasPlugin } from './main';
@@ -39,14 +39,14 @@ export function patchCanvasEditor(plugin: BetterEmbeddedCanvasPlugin): void {
 
 			oldFn.call(this, evt);
 			// Prevent embedding note from being zoomed.
-			if (this.view instanceof CanvasEmbed)
+			if (this.view instanceof CanvasEmbedInteractiveRenderer)
 				evt.stopPropagation();
 		}),
 
 		onPointerdown: oldFn => dedupe(plugin.manifest.id, oldFn, function (this: Canvas, evt) {
 			if (this.noInteraction) return;
 
-			if (this.view instanceof CanvasEmbed) {
+			if (this.view instanceof CanvasEmbedInteractiveRenderer) {
 				// Prevent embedding canvas from dragging.
 				evt.stopPropagation();
 				// Update canvas rect dimension. Thus, selection can be performed from
