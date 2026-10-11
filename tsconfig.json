@@ -40,8 +40,9 @@
 			"ESNext"
 		],
 		"types": [
-			"obsidian",
-			"node"
+			"@codemirror/view",
+			"node",
+			"obsidian"
 		]
 	},
 	"include": [
