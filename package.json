@@ -21,22 +21,27 @@
 	"author": "Kotaindah55 (Sheva Ihza)",
 	"license": "MIT",
 	"devDependencies": {
-		"@eslint/js": "~9.39.5",
-		"@stylistic/eslint-plugin": "~5.10.0",
+		"@eslint/js": "^10.0.1",
+		"@stylistic/eslint-plugin": "^5.10.0",
 		"@types/node": "^24.12.4",
 		"@types/semver": "^7.8.0",
+		"@typescript-eslint/parser": "^8.71.0",
+		"esbuild": "^0.28.2",
 		"eslint": "^10.11.0",
-		"eslint-plugin-obsidianmd": "~0.4.2",
-		"globals": "^14.0.0",
+		"eslint-plugin-jsdoc": "^65.2.2",
+		"eslint-plugin-obsidianmd": "^0.4.2",
+		"globals": "^17.13.0",
 		"i18next": "^26.2.0",
-		"sass": "~1.104.1",
-		"tsx": "^4.23.1",
+		"sass": "^1.105.1",
+		"semver": "^7.8.5",
+		"tsx": "^4.23.15",
 		"typescript": "^6.0.3",
-		"typescript-eslint": "~8.70.0"
+		"typescript-eslint": "^8.71.0"
 	},
 	"dependencies": {
-		"@codemirror/view": "6.38.6",
+		"@codemirror/state": "6.7.6",
+		"@codemirror/view": "6.43.13",
 		"monkey-around": "3.0.0",
-		"obsidian": "1.13.1"
+		"obsidian": "1.14.4"
 	}
 }
