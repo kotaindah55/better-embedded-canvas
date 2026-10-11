@@ -22,20 +22,21 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - name: Use Node.js
-        uses: actions/setup-node@v7
+      - uses: pnpm/setup@v3
         with:
-          node-version: 24
+          version: 12
+          runtime: node@24
+          cache: true
+          require-lockfile: true
 
       - name: Build plugin
         run: |
-          npm install
-          npm run build
-          npm run build:styles
+          pnpm run build
+          pnpm run build:styles
 
       - name: Create changelog
         run: |
-          npm run changelog
+          pnpm run changelog
 
       - name: Copy manifest.json
         run: |

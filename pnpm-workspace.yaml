@@ -1,0 +1,20 @@
+peerDependencyRules:
+  allowedVersions:
+    'obsidian>@codemirror/view': '^6'
+    'obsidian>@codemirror/state': '^6'
+
+overrides:
+  'typescript': '^6'
+  'eslint-plugin-obsidianmd>obsidian': '~1.14'
+  'eslint-plugin-obsidianmd>@eslint/js': '^10'
+  'eslint-plugin-import>eslint': '^10'
+  'eslint-plugin-react>eslint': '^10'
+  '@microsoft/eslint-plugin-sdl>eslint': '^10'
+
+allowBuilds:
+  '@parcel/watcher': true
+  appium: true
+  classic-level: true
+  edgedriver: true
+  esbuild: true
+  geckodriver: true

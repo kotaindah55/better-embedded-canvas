@@ -4,16 +4,18 @@
 	"description": "Give your embedded canvas better display and interactivity.",
 	"main": "dist/main.js",
 	"scripts": {
-		"build": "tsc -noEmit -skipLibCheck && npx tsx scripts/build.mts",
-		"build:dev": "npx tsx scripts/build.mts dev",
-		"build:styles": "npx tsx scripts/build-styles.mts",
-		"build:styles:dev": "npx tsx scripts/build-styles.mts dev",
-		"version": "npx tsx scripts/bump-version.mts",
-		"version:auto-push": "npx tsx scripts/bump-version.mts auto-push",
-		"lock": "npx tsx scripts/lock-package.mts",
-		"lock:auto-push": "npx tsx scripts/lock-package.mts auto-push",
-		"publish": "npx tsx scripts/publish.mts",
-		"changelog": "npx tsx scripts/print-changelog.mts"
+		"lint": "tsx scripts/lint.mts",
+		"lint:auto-fix": "tsx scripts/lint.mts auto-fix",
+		"build": "tsc -noEmit -skipLibCheck && tsx scripts/build.mts",
+		"build:dev": "tsx scripts/build.mts dev",
+		"build:styles": "tsx scripts/build-styles.mts",
+		"build:styles:dev": "tsx scripts/build-styles.mts dev",
+		"version": "tsx scripts/bump-version.mts",
+		"version:auto-push": "tsx scripts/bump-version.mts auto-push",
+		"lock": "tsx scripts/lock-package.mts",
+		"lock:auto-push": "tsx scripts/lock-package.mts auto-push",
+		"publish": "tsx scripts/publish.mts",
+		"changelog": "tsx scripts/print-changelog.mts"
 	},
 	"keywords": [
 		"obsidian-plugin"
