@@ -399,6 +399,12 @@ declare module 'obsidian' {
 		wordAt(pos: EditorPosition): EditorRange | null;
 	}
 
+	/** @typeonly */
+	class CompositeWidget extends InteractiveWidget {
+		app: App;
+		editor: MarkdownEditor;
+	}
+
 	/**
 	 * Contains information of dragged object.
 	 */
@@ -517,7 +523,7 @@ declare module 'obsidian' {
 	}
 
 	/** @typeonly */
-	class EmbedWidget extends ParentWidget {
+	class EmbedWidget extends CompositeWidget {
 		child?: EmbedComponent;
 		href: string;
 		title: string;
@@ -630,12 +636,6 @@ declare module 'obsidian' {
 		| 'Legal'
 		| 'Letter'
 		| 'Tabloid';
-
-	/** @typeonly */
-	class ParentWidget extends InteractiveWidget {
-		app: App;
-		editor: MarkdownEditor;
-	}
 
 	interface PDFExportSettings {
 		/**
