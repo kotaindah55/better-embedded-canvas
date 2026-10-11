@@ -1,6 +1,6 @@
 import childProcess from 'node:child_process';
 import process from 'node:process';
-import { compareVersions } from 'compare-versions';
+import semver from 'semver';
 import { getLastChangelog } from './utils/changelog-util.mjs';
 import { getManifest, getPackageConfig, getVersionHistory, updateManifest, updatePackageConfig, updateVersionHistory } from './utils/config-util.mjs';
 import { isValidVersion } from './utils/version-util.mjs';
@@ -12,8 +12,8 @@ async function main(): Promise<void> {
 
 	if (!isValidVersion(manifest.version))
 		throw Error('Manifest use invalid version');
-	if (compareVersions(targetVersion, manifest.version) <= 0)
-		throw Error('Current version is less than previous version');
+	if (semver.lte(targetVersion, manifest.version))
+		throw Error('Current version is equal or less than previous version');
 
 	const message = `chore: bump version to ${targetVersion}`;
 	const tobeCommitted = ['manifest.json', 'package.json', 'versions.json', 'CHANGELOGS.txt'];
