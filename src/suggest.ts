@@ -1,7 +1,6 @@
 import {
 	type AliasLinkSuggestResult,
 	type SearchMatches,
-	type SearchResult,
 	type TFile,
 	prepareFuzzySearch
 } from './obsidian';
@@ -31,9 +30,9 @@ export async function getNodeSuggests(
 		const search = prepareFuzzySearch(query);
 
 		Object.each(cache.nodes, node => {
-			let downranked = false;
+			let downranked: boolean;
 			// Displayed as suggestion title.
-			let label = '';
+			let label: string;
 			let alias = '';
 			let isGroupNode = false;
 
@@ -48,16 +47,13 @@ export async function getNodeSuggests(
 				return;
 			}
 
-			let matches: SearchMatches | null = null;
+			let matches: SearchMatches | null;
 			let idMatches: SearchMatches | null = null;
 			let score = 0;
 
 			if (query) {
-				let result: SearchResult | null = null;
-				let idResult: SearchResult | null = null;
-
-				if (label) result = search(label);
-				idResult = search(node.id);
+				const result = label ? search(label) : null;
+				const idResult = search(node.id);
 
 				matches = result?.matches ?? null;
 				idMatches = idResult?.matches ?? null;
