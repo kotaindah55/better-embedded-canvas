@@ -33,24 +33,24 @@ export interface CanvasNodeSuggestResult {
 export class CanvasChooserModal extends FuzzySuggestModal<TFile> {
 	private readonly plugin: BetterEmbeddedCanvasPlugin;
 
-	private isOpen: boolean;
+	private _isOpen: boolean;
 	private files: TFile[] | null;
 	private onChoose?: (file: TFile, evt: MouseEvent | KeyboardEvent) => void;
 
 	public constructor(plugin: BetterEmbeddedCanvasPlugin) {
 		super(plugin.app);
 		this.plugin = plugin;
-		this.isOpen = false;
+		this._isOpen = false;
 		this.files = null;
 	}
 
 	public override open(): void {
-		this.isOpen = true;
+		this._isOpen = true;
 		super.open();
 	}
 
 	public override close(): void {
-		this.isOpen = false;
+		this._isOpen = false;
 		super.close();
 	}
 
@@ -105,7 +105,7 @@ export class CanvasChooserModal extends FuzzySuggestModal<TFile> {
 		purpose: 'node-chooser' | ((file: TFile, evt: MouseEvent | KeyboardEvent) => void),
 		onNodeChoose?: (file: TFile, data: EmbeddableCanvasNodeData, evt: MouseEvent | KeyboardEvent) => void
 	): void {
-		if (this.isOpen) return;
+		if (this._isOpen) return;
 
 		if (purpose == 'node-chooser') {
 			if (onNodeChoose) this.onChoose = file => new CanvasNodeChooserModal(this.plugin, file, onNodeChoose).open();
