@@ -154,7 +154,7 @@ export class CanvasEmbed extends Component implements EmbedComponent {
 	/**
 	 * Open canvas file on a tab.
 	 * 
-	 * @param evt Mouse event or pane type. If given mouse event, the event
+	 * @param evtOrPane Mouse event or pane type. If given mouse event, the event
 	 * will be translated into pane type.
 	 */
 	public async open(evtOrPane?: MouseEvent | PaneType | boolean): Promise<void> {
