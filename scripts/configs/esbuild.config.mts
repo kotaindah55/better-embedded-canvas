@@ -18,9 +18,7 @@ export default {
 	banner: {
 		js: banner
 	},
-	entryPoints: [
-		at('src/main.ts')
-	],
+	entryPoints: [at('src/main.ts')],
 	bundle: true,
 	external: [
 		'obsidian',
